@@ -12,7 +12,6 @@ import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -76,8 +75,11 @@ public class MenuActivity extends AppCompatActivity {
                             File file = new File(fileDir, fileName);
                             if (file.exists()) {
                                 File renamedFile = new File(fileDir + File.separator, newName + ".mp4");
-                                if (file.renameTo(renamedFile))
+                                if (file.renameTo(renamedFile)) {
                                     Toast.makeText(this, newName + " 녹음파일이 저장되었습니다.", Toast.LENGTH_LONG).show();
+                                    cleanupSources();
+                                    finish();
+                                }
                             } else {
                                 new AlertDialog.Builder(this)
                                         .setCancelable(false)
@@ -223,7 +225,14 @@ public class MenuActivity extends AppCompatActivity {
         startActivityForResult(intent, SPEECH_TO_TEXT);
     }
 
-    private void logD(String log) {
-        Log.d("로그", log);
+    private void cleanupSources() {
+        List<String> sourcePathes = getIntent().getStringArrayListExtra("sources");
+        if (sourcePathes != null) {
+            for (String path : sourcePathes) {
+                String name = path.replace(fileDir + File.separator, "");
+                File file = new File(fileDir, name);
+                boolean success = file.delete();
+            }
+        }
     }
 }

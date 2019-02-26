@@ -61,6 +61,7 @@ public class RecordActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         stopRecording();
+        cleanupSources();
     }
 
     @Override
@@ -119,8 +120,12 @@ public class RecordActivity extends AppCompatActivity {
                 stopRecording();
                 File file = new File(fileDir, fileName);
                 if (file.exists()) {
+                    //소스 파일 병합
+                    mergeAudioFiles(sourcePathes, targetPath);
+                    //파일명, 소스 파일 리스트 전달
                     Intent i = new Intent(RecordActivity.this, MenuActivity.class);
                     i.putExtra("fileName", targetName);
+                    i.putStringArrayListExtra("sources", (ArrayList<String>) sourcePathes);
                     startActivity(i);
                 } else {
                     Toast.makeText(RecordActivity.this, "녹음파일이 생성되지 않았습니다.", Toast.LENGTH_LONG).show();
@@ -184,10 +189,17 @@ public class RecordActivity extends AppCompatActivity {
         }
         targetName = System.currentTimeMillis() + ".mp4";
         targetPath = fileDir + File.separator + targetName;
-        mergeAudioFiles(sourcePathes, targetPath);
     }
 
-    private boolean mergeAudioFiles(List<String> sources, String target) {
+    private void cleanupSources() {
+        for (String path : sourcePathes) {
+            String name = path.replace(fileDir + File.separator, "");
+            File file = new File(fileDir, name);
+            boolean success = file.delete();
+        }
+    }
+
+    private void mergeAudioFiles(List<String> sources, String target) {
         try {
             List<Movie> movies = new ArrayList<>();
             List<Track> tracks = new ArrayList<>();
@@ -202,10 +214,8 @@ public class RecordActivity extends AppCompatActivity {
             FileChannel fileChannel = new RandomAccessFile(target, "rw").getChannel();
             container.writeContainer(fileChannel);
             fileChannel.close();
-            return true;
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
         }
     }
 
