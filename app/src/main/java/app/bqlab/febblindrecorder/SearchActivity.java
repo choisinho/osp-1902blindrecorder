@@ -1,10 +1,12 @@
 package app.bqlab.febblindrecorder;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -20,10 +22,13 @@ import java.util.Locale;
 public class SearchActivity extends AppCompatActivity {
 
     //constants
+    final int SEARCH_BY_NAME = 0;       //파일 이름으로 찾기
+    final int SEARCY_BY_LIST = 1;       //파일 목록
     final int SPEECH_TO_TEXT = 1000;
     //variables
     int focus;
     String fileDir;
+    ArrayList<String> speech;
     //objects
     TextToSpeech mTTS;
     //layouts
@@ -39,6 +44,30 @@ public class SearchActivity extends AppCompatActivity {
         speakFirst();
         resetFocus();
     }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == SPEECH_TO_TEXT) {
+                if (data != null) {
+                    speech = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    switch (focus) {
+                        case SEARCH_BY_NAME:
+                            String fileName = speech.get(0) + ".mp4";
+                            if (new File(fileDir, fileName).exists()) {
+                                Intent i = new Intent(this, PlayActivity.class);
+                                i.putExtra("fileName", fileName);
+                                startActivity(i);
+                            } else
+                                Toast.makeText(this, "파일을 찾을 수 없습니다.", Toast.LENGTH_LONG).show();
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
 
     private void init() {
         //initialize
@@ -81,7 +110,14 @@ public class SearchActivity extends AppCompatActivity {
         findViewById(R.id.search_bot_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                switch (focus) {
+                    case SEARCH_BY_NAME:
+                        requestSpeech();
+                        break;
+                    case SEARCY_BY_LIST:
+                        loadFileList();
+                        break;
+                }
             }
         });
         findViewById(R.id.search_bot_enter).setOnClickListener(new View.OnClickListener() {
@@ -97,7 +133,11 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
     }
-    
+
+    private void loadFileList() {
+
+    }
+
     private void resetFocus() {
         for (int i = 0; i < searchBodyButtons.size(); i++) {
             if (i != focus) {
