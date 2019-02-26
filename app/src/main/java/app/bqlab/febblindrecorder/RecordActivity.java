@@ -2,10 +2,12 @@ package app.bqlab.febblindrecorder;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
@@ -55,7 +57,7 @@ public class RecordActivity extends AppCompatActivity {
         init();
         checkResumedFile();
         setupTTS();
-        speakFirst();
+        showWaitDialog();
     }
 
     @Override
@@ -146,37 +148,37 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
-        if (speaking) {
-            Toast.makeText(this, "음성 안내가 끝났을 때 다시 시도하세요.", Toast.LENGTH_LONG).show();
+        //음성안내 정지
+        if (speaking)
+            speak("");
+        //레이아웃 세팅
+        ((Button) findViewById(R.id.record_body_start)).setText("녹음중지");
+        //파일 경로 세팅
+        fileName = System.currentTimeMillis() + ".mp4";
+        filePath = fileDir + File.separator + fileName;
+        //파일을 이어 붙이기 위한 배열 세팅
+        sourcePathes.add(filePath);
+        //녹음 시작
+        if ((ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
+                || (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
         } else {
-            //레이아웃 세팅
-            ((Button) findViewById(R.id.record_body_start)).setText("녹음중지");
-            //파일 경로 세팅
-            fileName = System.currentTimeMillis() + ".mp4";
-            filePath = fileDir + File.separator + fileName;
-            //파일을 이어 붙이기 위한 배열 세팅
-            sourcePathes.add(filePath);
-            //녹음 시작
-            if ((ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
-                    || (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
-            } else {
-                try {
-                    recording = true;
-                    setupRecorder();
-                    mRecorder.prepare();
-                    mRecorder.start();
-                } catch (IOException e) {
-                    recording = false;
-                    Log.d("startRecording()", "IOException");
-                    Toast.makeText(RecordActivity.this, "파일의 경로에 접근할 수 없습니다.", Toast.LENGTH_LONG).show();
-                } catch (IllegalStateException e) {
-                    recording = false;
-                    Log.d("startRecording()", "IllegalStateException");
-                    Toast.makeText(RecordActivity.this, "파일의 경로에 접근할 수 없습니다.", Toast.LENGTH_LONG).show();
-                }
+            try {
+                recording = true;
+                setupRecorder();
+                mRecorder.prepare();
+                mRecorder.start();
+            } catch (IOException e) {
+                recording = false;
+                Log.d("startRecording()", "IOException");
+                Toast.makeText(RecordActivity.this, "파일의 경로에 접근할 수 없습니다.", Toast.LENGTH_LONG).show();
+            } catch (IllegalStateException e) {
+                recording = false;
+                Log.d("startRecording()", "IllegalStateException");
+                Toast.makeText(RecordActivity.this, "파일의 경로에 접근할 수 없습니다.", Toast.LENGTH_LONG).show();
             }
         }
+
     }
 
     private void stopRecording() {
@@ -279,6 +281,25 @@ public class RecordActivity extends AppCompatActivity {
                 }
             }).start();
         }
+    }
+
+    private void showWaitDialog() {
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("로딩중입니다..");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+        new CountDownTimer(500, 500) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+
+            }
+
+            @Override
+            public void onFinish() {
+                progressDialog.dismiss();
+                speakFirst();
+            }
+        }.start();
     }
 
     private void checkResumedFile() {
