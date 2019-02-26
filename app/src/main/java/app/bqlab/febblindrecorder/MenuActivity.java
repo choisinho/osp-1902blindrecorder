@@ -3,8 +3,6 @@ package app.bqlab.febblindrecorder;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.media.MediaPlayer;
-import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.RecognizerIntent;
@@ -32,24 +30,20 @@ public class MenuActivity extends AppCompatActivity {
     final int SPEECH_TO_TEXT = 1000;  //STT 데이터 요청
     //variables
     int focus;
-    boolean playing;
     String fileName, fileDir;
     List<String> speech;
+    //objects
+    TextToSpeech mTTS;
     //layouts
     LinearLayout menuBody;
     List<View> menuBodyButtons;
-    //objects
-    TextToSpeech mTTS;
-    MediaPlayer mPlayer;
-    MediaRecorder mRecorder;
-    app.bqlab.febblindrecorder.VoiceMemoManager mManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
         init();
-        checkTTS();
+        setupTTS();
         speakFirst();
         resetFocus();
     }
@@ -208,7 +202,7 @@ public class MenuActivity extends AppCompatActivity {
         }
     }
 
-    private void checkTTS() {
+    private void setupTTS() {
         mTTS = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
