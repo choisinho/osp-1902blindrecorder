@@ -26,6 +26,7 @@
         <activity android:name=".PlayActivity"/>
         <activity android:name=".SearchActivity"/>
         <activity android:name=".MenuActivity"/>
+        <activity android:name=".FilesActivity"/>
     </application>
 
 </manifest>

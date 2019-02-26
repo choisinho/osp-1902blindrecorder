@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -17,6 +18,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -134,13 +136,16 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 switch (focus) {
                     case FOCUS_VOICE_MEMO:
+                        checkDirectory();
                         startActivity(new Intent(MainActivity.this, RecordActivity.class));
                         stopPlaying();
                         break;
                     case FOCUS_INSTANT_PLAY:
+                        checkDirectory();
                         playRecentFile();
                         break;
                     case FOCUS_SEARCH_MEMO:
+                        checkDirectory();
                         startActivity(new Intent(MainActivity.this, SearchActivity.class));
                         stopPlaying();
                         break;
@@ -187,6 +192,13 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void checkDirectory() {
+        File dir = new File(Environment.getExternalStorageDirectory() + File.separator + "음성메모장");
+        boolean success;
+        if (!dir.exists())
+            success = dir.mkdir();
+    }
+
     private void resetFocus() {
         for (int i = 0; i < mainBodyButtons.size(); i++) {
             if (i != focus) {
@@ -231,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
                     Thread.sleep(500);
                     speak("홈메뉴");
                     Thread.sleep(1000);
-                    speak("음성 메모");
+                    speakFocus();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

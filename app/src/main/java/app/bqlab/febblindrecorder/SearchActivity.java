@@ -8,7 +8,6 @@ import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -45,7 +44,6 @@ public class SearchActivity extends AppCompatActivity {
         resetFocus();
     }
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (resultCode == Activity.RESULT_OK) {
@@ -68,7 +66,6 @@ public class SearchActivity extends AppCompatActivity {
         }
     }
 
-
     private void init() {
         //initialize
         searchBody = findViewById(R.id.search_body);
@@ -83,8 +80,6 @@ public class SearchActivity extends AppCompatActivity {
                 focus--;
                 if (focus <= 0)
                     focus = 0;
-                Log.d("버튼개수", String.valueOf(searchBodyButtons));
-                Log.d("인덱스", String.valueOf(focus));
                 speakFocus();
                 resetFocus();
             }
@@ -95,8 +90,6 @@ public class SearchActivity extends AppCompatActivity {
                 focus++;
                 if (focus >= searchBodyButtons.size() - 1)
                     focus = searchBodyButtons.size() - 1;
-                Log.d("버튼개수", String.valueOf(searchBodyButtons));
-                Log.d("인덱스", String.valueOf(focus));
                 speakFocus();
                 resetFocus();
             }
@@ -115,7 +108,7 @@ public class SearchActivity extends AppCompatActivity {
                         requestSpeech();
                         break;
                     case SEARCY_BY_LIST:
-                        loadFileList();
+                        startActivity(new Intent(SearchActivity.this, FilesActivity.class));
                         break;
                 }
             }
@@ -123,7 +116,14 @@ public class SearchActivity extends AppCompatActivity {
         findViewById(R.id.search_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                switch (focus) {
+                    case SEARCH_BY_NAME:
+                        requestSpeech();
+                        break;
+                    case SEARCY_BY_LIST:
+                        startActivity(new Intent(SearchActivity.this, FilesActivity.class));
+                        break;
+                }
             }
         });
         findViewById(R.id.search_bot_close).setOnClickListener(new View.OnClickListener() {
@@ -132,10 +132,6 @@ public class SearchActivity extends AppCompatActivity {
                 finish();
             }
         });
-    }
-
-    private void loadFileList() {
-
     }
 
     private void resetFocus() {
@@ -182,7 +178,7 @@ public class SearchActivity extends AppCompatActivity {
                     Thread.sleep(500);
                     speak("파일찾기메뉴");
                     Thread.sleep(1500);
-                    speak("파일 이름으로 찾기");
+                    speakFocus();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
