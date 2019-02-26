@@ -19,10 +19,20 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.coremedia.iso.boxes.Container;
+import com.googlecode.mp4parser.authoring.Movie;
+import com.googlecode.mp4parser.authoring.Track;
+import com.googlecode.mp4parser.authoring.builder.DefaultMp4Builder;
+import com.googlecode.mp4parser.authoring.container.mp4.MovieCreator;
+import com.googlecode.mp4parser.authoring.tracks.AppendTrack;
+
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 
 public class RecordActivity extends AppCompatActivity {
@@ -30,7 +40,7 @@ public class RecordActivity extends AppCompatActivity {
     //constants
     final int SPEECH_TO_TEXT = 1000;
     //variables
-    String speech, path, name;
+    String speech, fileDir, fileName, filePath;
     boolean recording, speaking;
     //objects
     MediaRecorder mRecorder;
@@ -42,7 +52,7 @@ public class RecordActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_record);
         init();
-        installTTS();
+        setupTTS();
         speakFirst();
     }
 
@@ -105,10 +115,10 @@ public class RecordActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 stopRecording();
-                if (new File(path).exists()) {
-                    Intent i =new Intent(RecordActivity.this, MenuActivity.class);
-                    i.putExtra("path", path);
-                    Log.d("경로", path);
+                File file = new File(fileDir, fileName);
+                if (file.exists()) {
+                    Intent i = new Intent(RecordActivity.this, MenuActivity.class);
+                    i.putExtra("fileName", file.getName());
                     startActivity(i);
                 } else {
                     Toast.makeText(RecordActivity.this, "녹음파일이 생성되지 않았습니다.", Toast.LENGTH_LONG).show();
@@ -121,7 +131,7 @@ public class RecordActivity extends AppCompatActivity {
         mRecorder = new MediaRecorder();
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mRecorder.setOutputFile(path);
+        mRecorder.setOutputFile(filePath);
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
     }
 
@@ -131,7 +141,9 @@ public class RecordActivity extends AppCompatActivity {
             return;
         }
         ((Button) findViewById(R.id.record_body_start)).setText("녹음중지");
-        path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + System.currentTimeMillis()+".mp4";
+        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
+        fileName = System.currentTimeMillis() + ".mp4";
+        filePath = fileDir + File.separator + fileName;
         if ((ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
                 || (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
@@ -163,7 +175,29 @@ public class RecordActivity extends AppCompatActivity {
         ((Button) findViewById(R.id.record_body_start)).setText("녹음시작");
     }
 
-    private void installTTS() {
+    private boolean mergeAudioFiles(String sources[], String target) {
+        try {
+            List<Movie> movies = new ArrayList<>();
+            List<Track> tracks = new ArrayList<>();
+            for (String source : sources)
+                movies.add(MovieCreator.build(source));
+            for (Movie movie : movies)
+                tracks.addAll(movie.getTracks());
+            Movie output = new Movie();
+            if (!tracks.isEmpty())
+                output.addTrack(new AppendTrack(tracks.toArray(new Track[0])));
+            Container container = new DefaultMp4Builder().build(output);
+            FileChannel fileChannel = new RandomAccessFile(target, "rw").getChannel();
+            container.writeContainer(fileChannel);
+            fileChannel.close();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private void setupTTS() {
         mTTSMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "unique_id");
         mTTS = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override

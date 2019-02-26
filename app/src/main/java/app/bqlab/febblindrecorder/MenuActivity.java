@@ -34,7 +34,7 @@ public class MenuActivity extends AppCompatActivity {
     //variables
     int focus;
     boolean playing;
-    String path;
+    String fileName, fileDir;
     List<String> speech;
     //layouts
     LinearLayout menuBody;
@@ -72,22 +72,20 @@ public class MenuActivity extends AppCompatActivity {
                     speech = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     switch (focus) {
                         case FILE_SAVE:
-                            String name = speech.get(0);
-                            File file = new File(path);
+                            String newName = speech.get(0);
+                            File file = new File(fileDir, fileName);
                             if (file.exists()) {
-                                File renamedFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + name + ".mp4");
-                                Toast.makeText(this, name + " 녹음파일이 저장되었습니다.", Toast.LENGTH_LONG).show();
-                                boolean success = file.renameTo(renamedFile);
-                                if (!success)
-                                    Log.d("실패", file.getPath());
+                                File renamedFile = new File(fileDir + File.separator, newName + ".mp4");
+                                if (file.renameTo(renamedFile))
+                                    Toast.makeText(this, newName + " 녹음파일이 저장되었습니다.", Toast.LENGTH_LONG).show();
                             } else {
                                 new AlertDialog.Builder(this)
                                         .setCancelable(false)
-                                        .setMessage("파일의 경로를 찾을 수 없습니다. 녹음파일이 삭제되었거나 경로가 임의적으로 수정되었습니다. 앱을 재시작하세요.")
+                                        .setMessage("이미 녹음파일이 삭제되었거나 임의로 수정되었습니다.")
                                         .setPositiveButton("확인", new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
-                                                finishAffinity();
+                                                finish();
                                             }
                                         }).show();
                             }
@@ -101,7 +99,8 @@ public class MenuActivity extends AppCompatActivity {
         //initialization
         menuBody = findViewById(R.id.menu_body);
         menuBodyButtons = new ArrayList<View>();
-        path = getIntent().getStringExtra("path");
+        fileName = getIntent().getStringExtra("fileName");
+        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
         //setting
         for (int i = 0; i < menuBody.getChildCount(); i++)
             menuBodyButtons.add(menuBody.getChildAt(i));
@@ -144,7 +143,11 @@ public class MenuActivity extends AppCompatActivity {
         findViewById(R.id.menu_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                switch (focus) {
+                    case FILE_SAVE:
+                        requestSpeech();
+                        break;
+                }
             }
         });
         findViewById(R.id.menu_bot_close).setOnClickListener(new View.OnClickListener() {
@@ -216,7 +219,11 @@ public class MenuActivity extends AppCompatActivity {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.KOREA);
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "검색어를 말씀하세요.");
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "파일명을 말하세요.");
         startActivityForResult(intent, SPEECH_TO_TEXT);
+    }
+
+    private void logD(String log) {
+        Log.d("로그", log);
     }
 }
