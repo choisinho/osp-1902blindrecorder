@@ -214,10 +214,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void shutupTTS() {
-        if (mTTS.isSpeaking()) {
-            mTTS.shutdown();
-            mTTS.stop();
-        }
+        mTTS.shutdown();
+        mTTS.stop();
     }
 
     private void speak(String text) {

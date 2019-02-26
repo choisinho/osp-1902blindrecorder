@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -31,7 +30,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -40,13 +38,12 @@ public class RecordActivity extends AppCompatActivity {
     //constants
     final int SPEECH_TO_TEXT = 1000;
     //variables
-    boolean recording, speaking, resuming;
+    boolean recording, resuming;
     String speech, fileDir, fileName, filePath, targetPath, targetName;
     List<String> sourcePathes;
     //objects
     MediaRecorder mRecorder;
     TextToSpeech mTTS;
-    HashMap<String, String> mTTSMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +58,12 @@ public class RecordActivity extends AppCompatActivity {
         setupTTS();
         checkResumedFile();
         speakFirst();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopRecording();
     }
 
     @Override
@@ -86,7 +89,6 @@ public class RecordActivity extends AppCompatActivity {
     private void init() {
         //initialize
         sourcePathes = new ArrayList<>();
-        mTTSMap = new HashMap<String, String>();
         fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
         //setup
         findViewById(R.id.record_bot_left).setOnClickListener(new View.OnClickListener() {
@@ -224,7 +226,6 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void setupTTS() {
-        mTTSMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "unique_id");
         mTTS = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -242,38 +243,19 @@ public class RecordActivity extends AppCompatActivity {
         });
         mTTS.setPitch(0.7f);
         mTTS.setSpeechRate(1.2f);
-        mTTS.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-            @Override
-            public void onStart(String utteranceId) {
-                speaking = true;
-            }
-
-            @Override
-            public void onDone(String utteranceId) {
-                speaking = false;
-            }
-
-            @Override
-            public void onError(String utteranceId) {
-
-            }
-        });
     }
 
     private void shutupTTS() {
-        if (mTTS.isSpeaking()) {
-            mTTS.stop();
-            mTTS.shutdown();
-        }
+        mTTS.stop();
+        mTTS.shutdown();
     }
 
     private void speak(String text) {
-        mTTS.speak(text, TextToSpeech.QUEUE_FLUSH, mTTSMap);
+        mTTS.speak(text, TextToSpeech.QUEUE_FLUSH, null);
     }
 
     private void speakFirst() {
         if (!resuming) {
-            speaking = true;
             new Thread(new Runnable() {
                 @Override
                 public void run() {

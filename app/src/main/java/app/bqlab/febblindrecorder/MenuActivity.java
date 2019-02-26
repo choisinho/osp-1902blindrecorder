@@ -211,10 +211,8 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void shutupTTS() {
-        if (mTTS.isSpeaking()) {
-            mTTS.stop();
-            mTTS.shutdown();
-        }
+        mTTS.stop();
+        mTTS.shutdown();
     }
 
     private void speak(String text) {
