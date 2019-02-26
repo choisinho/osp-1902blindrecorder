@@ -76,14 +76,13 @@ public class MenuActivity extends AppCompatActivity {
                             if (file.exists()) {
                                 File renamedFile = new File(fileDir + File.separator, newName + ".mp4");
                                 if (file.renameTo(renamedFile)) {
-                                    Toast.makeText(this, newName + " 녹음파일이 저장되었습니다.", Toast.LENGTH_LONG).show();
-                                    cleanupSources();
+                                    Toast.makeText(this, "메모가 저장되었습니다.", Toast.LENGTH_LONG).show();
                                     finish();
                                 }
                             } else {
                                 new AlertDialog.Builder(this)
                                         .setCancelable(false)
-                                        .setMessage("이미 녹음파일이 삭제되었거나 임의로 수정되었습니다.")
+                                        .setMessage("녹음파일이 삭제되었거나 임의로 수정되었습니다.")
                                         .setPositiveButton("확인", new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
@@ -135,9 +134,26 @@ public class MenuActivity extends AppCompatActivity {
         findViewById(R.id.menu_bot_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                File file = new File(fileDir, fileName);
+                boolean deleted;
                 switch (focus) {
                     case FILE_SAVE:
                         requestSpeech();
+                        break;
+                    case RESUME_RECORD:
+                        Intent i = new Intent(MenuActivity.this, RecordActivity.class);
+                        i.putExtra("fileName", fileName);
+                        startActivity(i);
+                        finish();
+                        break;
+                    case RE_RECORD:
+                        startActivity(new Intent(MenuActivity.this, RecordActivity.class));
+                        deleted = file.delete();
+                        finish();
+                        break;
+                    case RETURN_MAIN:
+                        deleted = file.delete();
+                        finish();
                         break;
                 }
             }
@@ -145,9 +161,26 @@ public class MenuActivity extends AppCompatActivity {
         findViewById(R.id.menu_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                File file = new File(fileDir, fileName);
+                boolean deleted;
                 switch (focus) {
                     case FILE_SAVE:
                         requestSpeech();
+                        break;
+                    case RESUME_RECORD:
+                        Intent i = new Intent(MenuActivity.this, RecordActivity.class);
+                        i.putExtra("fileName", fileName);
+                        startActivity(i);
+                        finish();
+                        break;
+                    case RE_RECORD:
+                        startActivity(new Intent(MenuActivity.this, RecordActivity.class));
+                        deleted = file.delete();
+                        finish();
+                        break;
+                    case RETURN_MAIN:
+                        deleted = file.delete();
+                        finish();
                         break;
                 }
             }
@@ -155,7 +188,10 @@ public class MenuActivity extends AppCompatActivity {
         findViewById(R.id.menu_bot_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MenuActivity.super.onBackPressed();
+                Intent i = new Intent(MenuActivity.this, RecordActivity.class);
+                i.putExtra("fileName", fileName);
+                startActivity(i);
+                finish();
             }
         });
     }
@@ -223,16 +259,5 @@ public class MenuActivity extends AppCompatActivity {
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.KOREA);
         intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "파일명을 말하세요.");
         startActivityForResult(intent, SPEECH_TO_TEXT);
-    }
-
-    private void cleanupSources() {
-        List<String> sourcePathes = getIntent().getStringArrayListExtra("sources");
-        if (sourcePathes != null) {
-            for (String path : sourcePathes) {
-                String name = path.replace(fileDir + File.separator, "");
-                File file = new File(fileDir, name);
-                boolean success = file.delete();
-            }
-        }
     }
 }

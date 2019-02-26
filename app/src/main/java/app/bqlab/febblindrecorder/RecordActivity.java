@@ -40,7 +40,7 @@ public class RecordActivity extends AppCompatActivity {
     //constants
     final int SPEECH_TO_TEXT = 1000;
     //variables
-    boolean recording, speaking;
+    boolean recording, speaking, resuming;
     String speech, fileDir, fileName, filePath, targetPath, targetName;
     List<String> sourcePathes;
     //objects
@@ -53,6 +53,7 @@ public class RecordActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_record);
         init();
+        checkResumedFile();
         setupTTS();
         speakFirst();
     }
@@ -84,10 +85,11 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void init() {
-        //initialization
+        //initialize
         sourcePathes = new ArrayList<>();
         mTTSMap = new HashMap<String, String>();
-        //setting
+        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
+        //setup
         findViewById(R.id.record_bot_left).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -118,17 +120,18 @@ public class RecordActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 stopRecording();
-                File file = new File(fileDir, fileName);
-                if (file.exists()) {
+                try {
                     //소스 파일 병합
+                    File file = new File(fileDir, fileName);
                     mergeAudioFiles(sourcePathes, targetPath);
+                    cleanupSources();
                     //파일명, 소스 파일 리스트 전달
                     Intent i = new Intent(RecordActivity.this, MenuActivity.class);
                     i.putExtra("fileName", targetName);
-                    i.putStringArrayListExtra("sources", (ArrayList<String>) sourcePathes);
                     startActivity(i);
-                } else {
-                    Toast.makeText(RecordActivity.this, "녹음파일이 생성되지 않았습니다.", Toast.LENGTH_LONG).show();
+                    finish();
+                } catch (NullPointerException e) {
+                    Toast.makeText(RecordActivity.this, "아직 녹음이 되지 않았습니다.", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -149,7 +152,6 @@ public class RecordActivity extends AppCompatActivity {
             //레이아웃 세팅
             ((Button) findViewById(R.id.record_body_start)).setText("녹음중지");
             //파일 경로 세팅
-            fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
             fileName = System.currentTimeMillis() + ".mp4";
             filePath = fileDir + File.separator + fileName;
             //파일을 이어 붙이기 위한 배열 세팅
@@ -261,19 +263,29 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void speakFirst() {
-        speaking = true;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(1000);
-                    speak("녹음화면");
-                    Thread.sleep(1000);
-                    speak("녹음을 시작하려면 실행버튼을 눌러주세요. 녹음이 끝나면 X토글키를 눌러주세요.");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+        if (!resuming) {
+            speaking = true;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(1000);
+                        speak("녹음화면");
+                        Thread.sleep(1000);
+                        speak("녹음을 시작하려면 실행버튼을 눌러주세요. 녹음이 끝나면 X토글키를 눌러주세요.");
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-        }).start();
+            }).start();
+        }
+    }
+
+    private void checkResumedFile() {
+        String resumedFile = getIntent().getStringExtra("fileName");
+        if (resumedFile != null) {
+            sourcePathes.add(fileDir + File.separator + resumedFile);
+            resuming = true;
+        }
     }
 }
