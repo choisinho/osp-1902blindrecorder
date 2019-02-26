@@ -114,19 +114,14 @@ public class RecordActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 stopRecording();
-                try {
-                    //소스 파일 병합
-                    File file = new File(fileDir, fileName);
-                    mergeAudioFiles(sourcePathes, targetPath);
-                    cleanupSources();
-                    //파일명, 소스 파일 리스트 전달
-                    Intent i = new Intent(RecordActivity.this, MenuActivity.class);
-                    i.putExtra("fileName", targetName);
-                    startActivity(i);
-                    finish();
-                } catch (NullPointerException e) {
-                    speak("아직 녹음이 되지 않았습니다.");
-                }
+                //소스 파일 병합
+                mergeAudioFiles(sourcePathes, targetPath);
+                cleanupSources();
+                //파일명, 소스 파일 리스트 전달
+                Intent i = new Intent(RecordActivity.this, MenuActivity.class);
+                i.putExtra("fileName", targetName);
+                startActivity(i);
+                finish();
             }
         });
     }
@@ -178,14 +173,20 @@ public class RecordActivity extends AppCompatActivity {
         //레이아웃 세팅
         ((Button) findViewById(R.id.record_body_start)).setText("녹음시작");
         //녹음 종료
-        recording = false;
-        if (mRecorder != null) {
-            mRecorder.stop();
-            mRecorder.release();
-            mRecorder = null;
+        try {
+            recording = false;
+            if (mRecorder != null) {
+                mRecorder.stop();
+                mRecorder.release();
+                mRecorder = null;
+            }
+            targetName = System.currentTimeMillis() + ".mp4";
+            targetPath = fileDir + File.separator + targetName;
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        } catch (RuntimeException e) {
+            e.printStackTrace();
         }
-        targetName = System.currentTimeMillis() + ".mp4";
-        targetPath = fileDir + File.separator + targetName;
     }
 
     private void cleanupSources() {
@@ -259,6 +260,7 @@ public class RecordActivity extends AppCompatActivity {
             mTTS.shutdown();
         }
     }
+
     private void speak(String text) {
         mTTS.speak(text, TextToSpeech.QUEUE_FLUSH, mTTSMap);
     }
@@ -287,11 +289,21 @@ public class RecordActivity extends AppCompatActivity {
         if (resumedFile != null) {
             sourcePathes.add(fileDir + File.separator + resumedFile);
             speak("잠시 후 녹음이 다시 진행됩니다.");
-            if (!recording) {
-                startRecording();
-            } else {
-                stopRecording();
-            }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(1000);
+                        if (!recording) {
+                            startRecording();
+                        } else {
+                            stopRecording();
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
             resuming = true;
         }
     }
