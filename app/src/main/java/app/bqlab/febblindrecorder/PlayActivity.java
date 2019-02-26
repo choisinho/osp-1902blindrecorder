@@ -1,10 +1,15 @@
 package app.bqlab.febblindrecorder;
 
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 public class PlayActivity extends AppCompatActivity {
+
+    MediaPlayer mPlayer;
+    MediaRecorder mRecorder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

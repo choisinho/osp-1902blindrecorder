@@ -276,12 +276,13 @@ public class RecordActivity extends AppCompatActivity {
         String resumedFile = getIntent().getStringExtra("fileName");
         if (resumedFile != null) {
             sourcePathes.add(fileDir + File.separator + resumedFile);
-            speak("잠시 후 녹음이 다시 진행됩니다.");
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
                         Thread.sleep(1000);
+                        speak("잠시 후 녹음이 다시 진행됩니다.");
+                        Thread.sleep(2500);
                         if (!recording) {
                             startRecording();
                         } else {
