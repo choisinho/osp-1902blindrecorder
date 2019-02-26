@@ -2,15 +2,16 @@ package app.bqlab.febblindrecorder;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.File;
@@ -28,6 +29,7 @@ public class PlayActivity extends AppCompatActivity {
     final int FOCUS_USER_CHANGE = 3;    //사용자 변경
     final int FOCUS_APP_EXIT = 4;       //종료
     //variables
+    int soundDisable;
     boolean playing, speaking;
     String fileName, fileDir, filePath;
     //objects
@@ -35,16 +37,15 @@ public class PlayActivity extends AppCompatActivity {
     TextToSpeech mTTS;
     MediaPlayer mPlayer;
     MediaRecorder mRecorder;
-    VoiceMemoManager mManager;
     HashMap<String, String> mTTSMap;
-    //layouts
-    Button playButton;
+    SoundPool mSoundPool;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
         init();
+        setupSoundPool();
     }
 
     @Override
@@ -77,13 +78,13 @@ public class PlayActivity extends AppCompatActivity {
         findViewById(R.id.play_bot_up).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //disable
+                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
             }
         });
-        findViewById(R.id.play_bot_up).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.play_bot_down).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //disable
+                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
             }
         });
         findViewById(R.id.play_bot_left).setOnClickListener(new View.OnClickListener() {
@@ -100,10 +101,10 @@ public class PlayActivity extends AppCompatActivity {
 
             }
         });
-        findViewById(R.id.play_bot_up).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.play_bot_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //disable
+                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
             }
         });
         findViewById(R.id.play_bot_enter).setOnClickListener(new View.OnClickListener() {
@@ -119,9 +120,21 @@ public class PlayActivity extends AppCompatActivity {
         findViewById(R.id.play_bot_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //disable
+                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
             }
         });
+    }
+
+    private void setupSoundPool() {
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+        mSoundPool = new SoundPool.Builder()
+                .setMaxStreams(1)
+                .setAudioAttributes(audioAttributes)
+                .build();
+        soundDisable = mSoundPool.load(this, R.raw.app_sound_disable, 0);
     }
 
     private void setupTTS() {

@@ -3,6 +3,8 @@ package app.bqlab.febblindrecorder;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.RecognizerIntent;
@@ -29,12 +31,13 @@ public class MenuActivity extends AppCompatActivity {
     final int RETURN_MAIN = 3;        //메뉴로 돌아가기
     final int SPEECH_TO_TEXT = 1000;  //STT 데이터 요청
     //variables
-    int focus;
+    int focus, soundMenuEnd, soundDisable;
     boolean allowedExit;
     String fileName, fileDir;
     List<String> speech;
     //objects
     TextToSpeech mTTS;
+    SoundPool mSoundPool;
     //layouts
     LinearLayout menuBody;
     List<View> menuBodyButtons;
@@ -45,6 +48,7 @@ public class MenuActivity extends AppCompatActivity {
         setContentView(R.layout.activity_menu);
         init();
         resetFocus();
+        setupSoundPool();
     }
 
     @Override
@@ -110,8 +114,10 @@ public class MenuActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 focus--;
-                if (focus <= 0)
+                if (focus < 0) {
+                    mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
                     focus = 0;
+                }
                 speakFocus();
                 resetFocus();
             }
@@ -120,8 +126,10 @@ public class MenuActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 focus++;
-                if (focus >= menuBodyButtons.size() - 1)
+                if (focus > menuBodyButtons.size() - 1) {
                     focus = menuBodyButtons.size() - 1;
+                    mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
+                }
                 speakFocus();
                 resetFocus();
             }
@@ -138,7 +146,7 @@ public class MenuActivity extends AppCompatActivity {
         findViewById(R.id.menu_bot_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //disable
+                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
             }
         });
         findViewById(R.id.menu_bot_enter).setOnClickListener(new View.OnClickListener() {
@@ -188,6 +196,19 @@ public class MenuActivity extends AppCompatActivity {
                 menuBodyButtons.get(i).setBackground(getDrawable(R.drawable.app_button_focussed));
             }
         }
+    }
+
+    private void setupSoundPool() {
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+        mSoundPool = new SoundPool.Builder()
+                .setMaxStreams(2)
+                .setAudioAttributes(audioAttributes)
+                .build();
+        soundMenuEnd = mSoundPool.load(this, R.raw.app_sound_menu_end, 0);
+        soundDisable = mSoundPool.load(this, R.raw.app_sound_disable, 0);
     }
 
     private void setupTTS() {

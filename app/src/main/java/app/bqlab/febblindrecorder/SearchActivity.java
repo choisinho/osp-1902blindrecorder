@@ -2,6 +2,8 @@ package app.bqlab.febblindrecorder;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.RecognizerIntent;
@@ -25,11 +27,12 @@ public class SearchActivity extends AppCompatActivity {
     final int SEARCY_BY_LIST = 1;       //파일 목록
     final int SPEECH_TO_TEXT = 1000;
     //variables
-    int focus;
+    int focus, soundMenuEnd, soundDisable;;
     String fileDir;
     ArrayList<String> speech;
     //objects
     TextToSpeech mTTS;
+    SoundPool mSoundPool;
     //layouts
     LinearLayout searchBody;
     List<View> searchBodyButtons;
@@ -40,6 +43,7 @@ public class SearchActivity extends AppCompatActivity {
         setContentView(R.layout.activity_search);
         init();
         resetFocus();
+        setupSoundPool();
     }
 
     @Override
@@ -95,8 +99,10 @@ public class SearchActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 focus--;
-                if (focus <= 0)
+                if (focus < 0) {
+                    mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
                     focus = 0;
+                }
                 speakFocus();
                 resetFocus();
             }
@@ -105,8 +111,10 @@ public class SearchActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 focus++;
-                if (focus >= searchBodyButtons.size() - 1)
+                if (focus > searchBodyButtons.size() - 1) {
+                    mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
                     focus = searchBodyButtons.size() - 1;
+                }
                 speakFocus();
                 resetFocus();
             }
@@ -134,15 +142,7 @@ public class SearchActivity extends AppCompatActivity {
         findViewById(R.id.search_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                switch (focus) {
-                    case SEARCH_BY_NAME:
-                        requestSpeech();
-                        break;
-                    case SEARCY_BY_LIST:
-                        startActivity(new Intent(SearchActivity.this, FilesActivity.class));
-                        finish();
-                        break;
-                }
+                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
             }
         });
         findViewById(R.id.search_bot_close).setOnClickListener(new View.OnClickListener() {
@@ -165,6 +165,20 @@ public class SearchActivity extends AppCompatActivity {
             }
         }
     }
+
+    private void setupSoundPool() {
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+        mSoundPool = new SoundPool.Builder()
+                .setMaxStreams(2)
+                .setAudioAttributes(audioAttributes)
+                .build();
+        soundMenuEnd = mSoundPool.load(this, R.raw.app_sound_menu_end, 0);
+        soundDisable = mSoundPool.load(this, R.raw.app_sound_disable, 0);
+    }
+
 
     private void setupTTS() {
         mTTS = new TextToSpeech(this, new TextToSpeech.OnInitListener() {

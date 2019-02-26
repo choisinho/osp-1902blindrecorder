@@ -1,6 +1,8 @@
 package app.bqlab.febblindrecorder;
 
 import android.content.Intent;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.tts.TextToSpeech;
@@ -18,11 +20,12 @@ import java.util.Locale;
 public class FilesActivity extends AppCompatActivity {
 
     //variables
-    int focus;
+    int focus, soundMenuEnd, soundDisable;
     String fileDir;
     String[] fileNames;
     //objects
     TextToSpeech mTTS;
+    SoundPool mSoundPool;
     //layouts
     LinearLayout filesBody;
     List<FileLayout> filesBodyLayouts;
@@ -35,6 +38,7 @@ public class FilesActivity extends AppCompatActivity {
         loadFiles();
         setupTTS();
         resetFocus();
+        setupSoundPool();
     }
 
     @Override
@@ -65,8 +69,10 @@ public class FilesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 focus--;
-                if (focus <= 0)
+                if (focus < 0) {
+                    mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
                     focus = 0;
+                }
                 speakFocus();
                 resetFocus();
             }
@@ -75,8 +81,10 @@ public class FilesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 focus++;
-                if (focus >= filesBodyLayouts.size() - 1)
+                if (focus > filesBodyLayouts.size() - 1) {
+                    mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
                     focus = filesBodyLayouts.size() - 1;
+                }
                 speakFocus();
                 resetFocus();
             }
@@ -106,7 +114,7 @@ public class FilesActivity extends AppCompatActivity {
         findViewById(R.id.files_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //disable
+                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
             }
         });
         findViewById(R.id.files_bot_close).setOnClickListener(new View.OnClickListener() {
@@ -142,6 +150,20 @@ public class FilesActivity extends AppCompatActivity {
             }
         }
     }
+
+    private void setupSoundPool() {
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+        mSoundPool = new SoundPool.Builder()
+                .setMaxStreams(2)
+                .setAudioAttributes(audioAttributes)
+                .build();
+        soundMenuEnd = mSoundPool.load(this, R.raw.app_sound_menu_end, 0);
+        soundDisable = mSoundPool.load(this, R.raw.app_sound_disable, 0);
+    }
+
 
     private void setupTTS() {
         mTTS = new TextToSpeech(this, new TextToSpeech.OnInitListener() {

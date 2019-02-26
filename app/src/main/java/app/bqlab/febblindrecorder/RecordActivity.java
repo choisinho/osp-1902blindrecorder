@@ -4,7 +4,9 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.AudioAttributes;
 import android.media.MediaRecorder;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.RecognizerIntent;
@@ -38,11 +40,13 @@ public class RecordActivity extends AppCompatActivity {
     //constants
     final int SPEECH_TO_TEXT = 1000;
     //variables
+    int soundDisable, soundStartEnd;
     boolean recording, resuming;
     String speech, fileDir, fileName, filePath, targetPath, targetName;
     List<String> sourcePathes;
     //objects
     MediaRecorder mRecorder;
+    SoundPool mSoundPool;
     TextToSpeech mTTS;
 
     @Override
@@ -50,6 +54,7 @@ public class RecordActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_record);
         init();
+        setupSoundPool();
     }
 
     @Override
@@ -92,6 +97,18 @@ public class RecordActivity extends AppCompatActivity {
         sourcePathes = new ArrayList<>();
         fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
         //setup
+        findViewById(R.id.record_bot_up).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+            }
+        });
+        findViewById(R.id.record_bot_down).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+            }
+        });
         findViewById(R.id.record_bot_left).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -102,16 +119,18 @@ public class RecordActivity extends AppCompatActivity {
         findViewById(R.id.record_bot_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //disable
+                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
             }
         });
         findViewById(R.id.record_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!recording) {
+                    mSoundPool.play(soundStartEnd, 1, 1, 0, 0, 1);
                     startRecording();
                 } else {
                     stopRecording();
+                    mSoundPool.play(soundStartEnd, 1, 1, 0, 0, 1);
                 }
             }
         });
@@ -174,7 +193,6 @@ public class RecordActivity extends AppCompatActivity {
                 Toast.makeText(RecordActivity.this, "파일의 경로에 접근할 수 없습니다.", Toast.LENGTH_LONG).show();
             }
         }
-
     }
 
     private void stopRecording() {
@@ -225,6 +243,19 @@ public class RecordActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void setupSoundPool() {
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+        mSoundPool = new SoundPool.Builder()
+                .setMaxStreams(3)
+                .setAudioAttributes(audioAttributes)
+                .build();
+        soundDisable = mSoundPool.load(this, R.raw.app_sound_disable, 0);
+        soundStartEnd = mSoundPool.load(this, R.raw.app_sound_start_end, 0);
     }
 
     private void setupTTS() {

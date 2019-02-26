@@ -1,19 +1,20 @@
 package app.bqlab.febblindrecorder;
 
 import android.Manifest;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -33,16 +34,19 @@ public class MainActivity extends AppCompatActivity {
     final int FOCUS_USER_CHANGE = 3;    //사용자 변경
     final int FOCUS_APP_EXIT = 4;       //종료
     //variables
-    int focus;
+    String fileDir;
+    List<String> filePathes;
+    int focus, soundMenuEnd, soundDisable;
     boolean playing;
     //layouts
-    LinearLayout mainBody;
+    LinearLayout main, mainBody;
     List<View> mainBodyButtons;
     //objects
+    File mFile;
     TextToSpeech mTTS;
     MediaPlayer mPlayer;
     MediaRecorder mRecorder;
-    VoiceMemoManager mManager;
+    SoundPool mSoundPool;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
         requestPermissions();
         init();
         resetFocus();
+        checkDirectory();
+        setupSoundPool();
     }
 
     @Override
@@ -68,15 +74,18 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         if (mTTS != null) {
             mTTS.stop();
             mTTS.shutdown();
         }
-        super.onDestroy();
+        mSoundPool.release();
+        mSoundPool = null;
     }
 
     private void init() {
         //initialization
+        main = findViewById(R.id.main);
         mainBody = findViewById(R.id.main_body);
         mainBodyButtons = new ArrayList<View>();
         //setting
@@ -86,8 +95,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 focus--;
-                if (focus <= 0)
+                if (focus < 0) {
+                    mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
                     focus = 0;
+                }
                 speakFocus();
                 resetFocus();
             }
@@ -96,8 +107,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 focus++;
-                if (focus >= mainBodyButtons.size() - 1)
+                if (focus > mainBodyButtons.size() - 1) {
+                    mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
                     focus = mainBodyButtons.size() - 1;
+                }
                 speakFocus();
                 resetFocus();
             }
@@ -128,21 +141,7 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case FOCUS_APP_EXIT:
                         shutupTTS();
-                        new AlertDialog.Builder(MainActivity.this)
-                                .setMessage("앱을 종료합니다.")
-                                .setPositiveButton("확인", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        stopPlaying();
-                                        finishAffinity();
-                                    }
-                                })
-                                .setNegativeButton("취소", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-
-                                    }
-                                }).show();
+                        finishAffinity();
                 }
             }
         });
@@ -156,22 +155,23 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.main_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //disable
+                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
             }
         });
         findViewById(R.id.main_bot_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finishAffinity();
+                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
             }
         });
     }
 
     private void checkDirectory() {
-        File dir = new File(Environment.getExternalStorageDirectory() + File.separator + "음성메모장");
+        fileDir = Environment.getExternalStorageDirectory() + File.separator + "음성메모장";
+        mFile = new File(fileDir);
         boolean success;
-        if (!dir.exists())
-            success = dir.mkdir();
+        if (!mFile.exists())
+            success = mFile.mkdir();
     }
 
     private void resetFocus() {
@@ -184,6 +184,19 @@ public class MainActivity extends AppCompatActivity {
                 mainBodyButtons.get(i).setBackground(getDrawable(R.drawable.app_button_focussed));
             }
         }
+    }
+
+    private void setupSoundPool() {
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+        mSoundPool = new SoundPool.Builder()
+                .setMaxStreams(2)
+                .setAudioAttributes(audioAttributes)
+                .build();
+        soundMenuEnd = mSoundPool.load(this, R.raw.app_sound_menu_end, 0);
+        soundDisable = mSoundPool.load(this, R.raw.app_sound_disable, 0);
     }
 
     private void setupTTS() {
@@ -238,13 +251,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void playRecentFile() {
         if (!playing) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
-                mManager = new VoiceMemoManager(this);
-            else {
-                requestPermissions();
-                return;
-            }
-            final String path = mManager.getList().get(mManager.getList().size() - 1).getPath();
+            loadFiles();
+            final String path = filePathes.get(filePathes.size() - 1);
             mRecorder = new MediaRecorder();
             mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
@@ -254,28 +262,36 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     try {
-                        Thread.sleep(1000);
+                        disablelayouts(false, main);
                         playing = true;
                         mPlayer = new MediaPlayer();
+                        mPlayer.setDataSource(path);
+                        mPlayer.prepare();
+                        mPlayer.start();
                         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                             @Override
                             public void onCompletion(MediaPlayer mp) {
                                 playing = false;
+                                disablelayouts(true, main);
+                                setupTTS();
+                                speakFocus();
                             }
                         });
-                        mPlayer.setDataSource(path);
-                        mPlayer.prepare();
-                        mPlayer.start();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
             }).start();
-            Toast.makeText(this, "최근의 파일을 재생합니다.", Toast.LENGTH_LONG).show();
-        } else
-            Toast.makeText(this, "이미 파일을 재생하는 중입니다.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void loadFiles() {
+        //디렉토리의 파일을 파일 리스트로 불러옴
+        filePathes = new ArrayList<>();
+        String[] names = mFile.list();
+        for (String name : names) {
+            filePathes.add(Environment.getExternalStorageDirectory() + File.separator + "음성메모장" + File.separator + name);
+        }
     }
 
     private void stopPlaying() {
@@ -293,6 +309,16 @@ public class MainActivity extends AppCompatActivity {
         if ((ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
                 || (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
+        }
+    }
+
+    private void disablelayouts(boolean enable, ViewGroup viewGroup){
+        for (int i = 0; i < viewGroup.getChildCount(); i++){
+            View child = viewGroup.getChildAt(i);
+            child.setEnabled(enable);
+            if (child instanceof ViewGroup){
+                disablelayouts(enable, (ViewGroup)child);
+            }
         }
     }
 }
