@@ -39,9 +39,20 @@ public class SearchActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
         init();
+        resetFocus();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         setupTTS();
         speakFirst();
-        resetFocus();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        shutupTTS();
     }
 
     @Override
@@ -62,9 +73,9 @@ public class SearchActivity extends AppCompatActivity {
                             if (new File(fileDir, fileName).exists()) {
                                 Intent i = new Intent(this, PlayActivity.class);
                                 i.putExtra("fileName", fileName);
+                                i.putExtra("flag", "name");
                                 startActivity(i);
-                            } else
-                                Toast.makeText(this, "파일을 찾을 수 없습니다.", Toast.LENGTH_LONG).show();
+                            }
                             break;
                     }
                 }
@@ -103,7 +114,8 @@ public class SearchActivity extends AppCompatActivity {
         findViewById(R.id.search_bot_left).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SearchActivity.super.onBackPressed();
+                startActivity(new Intent(SearchActivity.this, MainActivity.class));
+                finish();
             }
         });
         findViewById(R.id.search_bot_right).setOnClickListener(new View.OnClickListener() {
@@ -128,6 +140,7 @@ public class SearchActivity extends AppCompatActivity {
                         break;
                     case SEARCY_BY_LIST:
                         startActivity(new Intent(SearchActivity.this, FilesActivity.class));
+                        finish();
                         break;
                 }
             }
@@ -135,6 +148,7 @@ public class SearchActivity extends AppCompatActivity {
         findViewById(R.id.search_bot_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                startActivity(new Intent(SearchActivity.this, MainActivity.class));
                 finish();
             }
         });

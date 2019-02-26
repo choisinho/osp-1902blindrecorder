@@ -64,6 +64,7 @@ public class RecordActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         stopRecording();
+        shutupTTS();
     }
 
     @Override
@@ -94,7 +95,8 @@ public class RecordActivity extends AppCompatActivity {
         findViewById(R.id.record_bot_left).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                RecordActivity.super.onBackPressed();
+                startActivity(new Intent(RecordActivity.this, MainActivity.class));
+                finish();
             }
         });
         findViewById(R.id.record_bot_right).setOnClickListener(new View.OnClickListener() {

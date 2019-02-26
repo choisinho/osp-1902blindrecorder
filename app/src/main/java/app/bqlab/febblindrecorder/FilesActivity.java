@@ -33,10 +33,26 @@ public class FilesActivity extends AppCompatActivity {
         setContentView(R.layout.activity_files);
         init();
         loadFiles();
-
         setupTTS();
-        speakFirst();
         resetFocus();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        speakFirst();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        shutupTTS();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        shutupTTS();
     }
 
     private void init() {
@@ -68,7 +84,8 @@ public class FilesActivity extends AppCompatActivity {
         findViewById(R.id.files_bot_left).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FilesActivity.super.onBackPressed();
+                startActivity(new Intent(FilesActivity.this, SearchActivity.class));
+                finish();
             }
         });
         findViewById(R.id.files_bot_right).setOnClickListener(new View.OnClickListener() {
@@ -78,6 +95,7 @@ public class FilesActivity extends AppCompatActivity {
                 if (new File(fileDir, fileName).exists()) {
                     Intent i = new Intent(FilesActivity.this, PlayActivity.class);
                     i.putExtra("fileName", fileName);
+                    i.putExtra("flag", "list");
                     startActivity(i);
                 } else {
                     Toast.makeText(FilesActivity.this, "파일이 존재하지 않습니다.", Toast.LENGTH_LONG).show();
@@ -88,11 +106,13 @@ public class FilesActivity extends AppCompatActivity {
         findViewById(R.id.files_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //disable
             }
         });
         findViewById(R.id.files_bot_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                startActivity(new Intent(FilesActivity.this, SearchActivity.class));
                 finish();
             }
         });
@@ -143,6 +163,11 @@ public class FilesActivity extends AppCompatActivity {
         mTTS.setSpeechRate(1.2f);
     }
 
+    private void shutupTTS() {
+        mTTS.stop();
+        mTTS.shutdown();
+    }
+
     private void speak(String text) {
         mTTS.speak(text, TextToSpeech.QUEUE_FLUSH, null);
     }
@@ -165,6 +190,6 @@ public class FilesActivity extends AppCompatActivity {
 
     private void speakFocus() {
         final Button button = filesBodyLayouts.get(focus).getButton();
-        speak(button.getText().toString());
+        speak(button.getText().toString().replace(".mp4", ""));
     }
 }

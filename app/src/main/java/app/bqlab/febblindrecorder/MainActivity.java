@@ -61,6 +61,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        shutupTTS();
+    }
+
+    @Override
     protected void onDestroy() {
         if (mTTS != null) {
             mTTS.stop();
@@ -143,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.main_bot_left).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MainActivity.super.onBackPressed();
+                finishAffinity();
                 shutupTTS();
             }
         });
@@ -156,20 +162,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.main_bot_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new AlertDialog.Builder(MainActivity.this)
-                        .setMessage("앱을 종료합니다.")
-                        .setPositiveButton("확인", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                finishAffinity();
-                            }
-                        })
-                        .setNegativeButton("취소", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                            }
-                        }).show();
+                finishAffinity();
             }
         });
     }
