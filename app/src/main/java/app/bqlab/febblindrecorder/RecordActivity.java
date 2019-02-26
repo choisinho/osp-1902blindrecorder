@@ -2,12 +2,10 @@ package app.bqlab.febblindrecorder;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.MediaRecorder;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Environment;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
@@ -57,7 +55,12 @@ public class RecordActivity extends AppCompatActivity {
         init();
         checkResumedFile();
         setupTTS();
-        showWaitDialog();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        speakFirst();
     }
 
     @Override
@@ -101,11 +104,7 @@ public class RecordActivity extends AppCompatActivity {
         findViewById(R.id.record_bot_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!recording) {
-                    startRecording();
-                } else {
-                    stopRecording();
-                }
+                //disable
             }
         });
         findViewById(R.id.record_bot_enter).setOnClickListener(new View.OnClickListener() {
@@ -133,7 +132,7 @@ public class RecordActivity extends AppCompatActivity {
                     startActivity(i);
                     finish();
                 } catch (NullPointerException e) {
-                    Toast.makeText(RecordActivity.this, "아직 녹음이 되지 않았습니다.", Toast.LENGTH_LONG).show();
+                    speak("아직 녹음이 되지 않았습니다.");
                 }
             }
         });
@@ -149,8 +148,10 @@ public class RecordActivity extends AppCompatActivity {
 
     private void startRecording() {
         //음성안내 정지
-        if (speaking)
-            speak("");
+        if (speaking) {
+            mTTS.stop();
+            mTTS.shutdown();
+        }
         //레이아웃 세팅
         ((Button) findViewById(R.id.record_body_start)).setText("녹음중지");
         //파일 경로 세팅
@@ -182,6 +183,11 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void stopRecording() {
+        //음성안내 정지
+        if (speaking) {
+            mTTS.stop();
+            mTTS.shutdown();
+        }
         //레이아웃 세팅
         ((Button) findViewById(R.id.record_body_start)).setText("녹음시작");
         //녹음 종료
@@ -283,29 +289,16 @@ public class RecordActivity extends AppCompatActivity {
         }
     }
 
-    private void showWaitDialog() {
-        final ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("로딩중입니다..");
-        progressDialog.setCancelable(false);
-        progressDialog.show();
-        new CountDownTimer(500, 500) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-
-            }
-
-            @Override
-            public void onFinish() {
-                progressDialog.dismiss();
-                speakFirst();
-            }
-        }.start();
-    }
-
     private void checkResumedFile() {
         String resumedFile = getIntent().getStringExtra("fileName");
         if (resumedFile != null) {
             sourcePathes.add(fileDir + File.separator + resumedFile);
+            speak("잠시 후 녹음이 다시 진행됩니다.");
+            if (!recording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
             resuming = true;
         }
     }

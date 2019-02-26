@@ -50,9 +50,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         requestPermissions();
         init();
-        checkTTS();
-        speakFirst();
         resetFocus();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setupTTS();
+        speakFirst();
     }
 
     @Override
@@ -91,47 +96,7 @@ public class MainActivity extends AppCompatActivity {
                 resetFocus();
             }
         });
-        findViewById(R.id.main_bot_left).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MainActivity.super.onBackPressed();
-            }
-        });
         findViewById(R.id.main_bot_right).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch (focus) {
-                    case FOCUS_VOICE_MEMO:
-                        startActivity(new Intent(MainActivity.this, RecordActivity.class));
-                        break;
-                    case FOCUS_INSTANT_PLAY:
-                        playRecentFile();
-                        break;
-                    case FOCUS_SEARCH_MEMO:
-                        startActivity(new Intent(MainActivity.this, SearchActivity.class));
-                        break;
-                    case FOCUS_USER_CHANGE:
-                        Toast.makeText(MainActivity.this, "아직 구현되지 않았습니다.", Toast.LENGTH_LONG).show();
-                        break;
-                    case FOCUS_APP_EXIT:
-                        new AlertDialog.Builder(MainActivity.this)
-                                .setMessage("앱을 종료합니다.")
-                                .setPositiveButton("확인", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        finishAffinity();
-                                    }
-                                })
-                                .setNegativeButton("취소", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-
-                                    }
-                                }).show();
-                }
-            }
-        });
-        findViewById(R.id.main_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 switch (focus) {
@@ -169,6 +134,18 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }).show();
                 }
+            }
+        });
+        findViewById(R.id.main_bot_left).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MainActivity.super.onBackPressed();
+            }
+        });
+        findViewById(R.id.main_bot_enter).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //disable
             }
         });
         findViewById(R.id.main_bot_close).setOnClickListener(new View.OnClickListener() {
@@ -211,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void checkTTS() {
+    private void setupTTS() {
         mTTS = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -229,6 +206,13 @@ public class MainActivity extends AppCompatActivity {
         });
         mTTS.setPitch(0.7f);
         mTTS.setSpeechRate(1.2f);
+    }
+
+    private void shutupTTS() {
+        if (mTTS.isSpeaking()) {
+            mTTS.shutdown();
+            mTTS.stop();
+        }
     }
 
     private void speak(String text) {

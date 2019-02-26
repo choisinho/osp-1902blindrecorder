@@ -44,6 +44,11 @@ public class MenuActivity extends AppCompatActivity {
         setContentView(R.layout.activity_menu);
         init();
         setupTTS();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         speakFirst();
         resetFocus();
     }
@@ -122,34 +127,16 @@ public class MenuActivity extends AppCompatActivity {
         findViewById(R.id.menu_bot_left).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MenuActivity.super.onBackPressed();
+                Intent i = new Intent(MenuActivity.this, RecordActivity.class);
+                i.putExtra("fileName", fileName);
+                startActivity(i);
+                finish();
             }
         });
         findViewById(R.id.menu_bot_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                File file = new File(fileDir, fileName);
-                boolean deleted;
-                switch (focus) {
-                    case FILE_SAVE:
-                        requestSpeech();
-                        break;
-                    case RESUME_RECORD:
-                        Intent i = new Intent(MenuActivity.this, RecordActivity.class);
-                        i.putExtra("fileName", fileName);
-                        startActivity(i);
-                        finish();
-                        break;
-                    case RE_RECORD:
-                        startActivity(new Intent(MenuActivity.this, RecordActivity.class));
-                        deleted = file.delete();
-                        finish();
-                        break;
-                    case RETURN_MAIN:
-                        deleted = file.delete();
-                        finish();
-                        break;
-                }
+                //disable
             }
         });
         findViewById(R.id.menu_bot_enter).setOnClickListener(new View.OnClickListener() {
@@ -234,7 +221,7 @@ public class MenuActivity extends AppCompatActivity {
                     Thread.sleep(500);
                     speak("녹음메뉴");
                     Thread.sleep(1500);
-                    speak("저장");
+                    speakFocus();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -248,6 +235,7 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void requestSpeech() {
+        speak("파일명을 말하세요.");
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.KOREA);
