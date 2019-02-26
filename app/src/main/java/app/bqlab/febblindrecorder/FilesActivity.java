@@ -1,5 +1,6 @@
 package app.bqlab.febblindrecorder;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.tts.TextToSpeech;
@@ -73,6 +74,15 @@ public class FilesActivity extends AppCompatActivity {
         findViewById(R.id.files_bot_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String fileName = fileNames[focus];
+                if (new File(fileDir, fileName).exists()) {
+                    Intent i = new Intent(FilesActivity.this, PlayActivity.class);
+                    i.putExtra("fileName", fileName);
+                    startActivity(i);
+                } else {
+                    Toast.makeText(FilesActivity.this, "파일이 존재하지 않습니다.", Toast.LENGTH_LONG).show();
+                    loadFiles();
+                }
             }
         });
         findViewById(R.id.files_bot_enter).setOnClickListener(new View.OnClickListener() {
