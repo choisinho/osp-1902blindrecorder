@@ -68,6 +68,7 @@ public class RecordActivity extends AppCompatActivity {
         super.onDestroy();
         stopRecording();
         cleanupSources();
+        shutupTTS();
     }
 
     @Override
@@ -113,15 +114,20 @@ public class RecordActivity extends AppCompatActivity {
         findViewById(R.id.record_bot_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                stopRecording();
-                //소스 파일 병합
-                mergeAudioFiles(sourcePathes, targetPath);
-                cleanupSources();
-                //파일명, 소스 파일 리스트 전달
-                Intent i = new Intent(RecordActivity.this, MenuActivity.class);
-                i.putExtra("fileName", targetName);
-                startActivity(i);
-                finish();
+                if (recording)
+                    stopRecording();
+                if (targetName != null) {
+                    //소스 파일 병합
+                    mergeAudioFiles(sourcePathes, targetPath);
+                    cleanupSources();
+                    //파일명, 소스 파일 리스트 전달
+                    Intent i = new Intent(RecordActivity.this, MenuActivity.class);
+                    i.putExtra("fileName", targetName);
+                    startActivity(i);
+                    finish();
+                } else {
+                    speak("파일을 찾을 수 없습니다.");
+                }
             }
         });
     }

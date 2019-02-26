@@ -57,10 +57,7 @@ public class MenuActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mTTS != null) {
-            mTTS.stop();
-            mTTS.shutdown();
-        }
+        shutupTTS();
         if (!allowedExit) {
             File file = new File(fileDir, fileName);
             boolean success = file.delete();
@@ -211,6 +208,13 @@ public class MenuActivity extends AppCompatActivity {
         });
         mTTS.setPitch(0.7f);
         mTTS.setSpeechRate(1.2f);
+    }
+
+    private void shutupTTS() {
+        if (mTTS.isSpeaking()) {
+            mTTS.stop();
+            mTTS.shutdown();
+        }
     }
 
     private void speak(String text) {
