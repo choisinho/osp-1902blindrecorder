@@ -34,7 +34,6 @@ public class RecordActivity extends AppCompatActivity {
     boolean recording, playing;
     //objects
     MediaRecorder mRecorder;
-    MediaPlayer mPlayer;
     TextToSpeech mTTS;
 
     @Override
@@ -125,22 +124,12 @@ public class RecordActivity extends AppCompatActivity {
                 recording = false;
                 Log.d("startRecording()", "IOException");
                 Toast.makeText(RecordActivity.this, "파일의 경로에 접근할 수 없습니다.", Toast.LENGTH_LONG).show();
-                return;
             } catch (IllegalStateException e) {
                 recording = false;
                 Log.d("startRecording()", "IllegalStateException");
                 Toast.makeText(RecordActivity.this, "파일의 경로에 접근할 수 없습니다.", Toast.LENGTH_LONG).show();
-                return;
             }
         }
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (recording) {
-                    ((TextView) findViewById(R.id.record_body_content)).setText(speech);
-                }
-            }
-        }).start();
     }
 
     private void stopRecording() {
@@ -150,7 +139,7 @@ public class RecordActivity extends AppCompatActivity {
             mRecorder = null;
         }
         recording = false;
-        ((Button) findViewById(R.id.record_body_start)).setText("녹음재생");
+        ((Button) findViewById(R.id.record_body_start)).setText("녹음시작");
     }
 
     private void checkTTS() {

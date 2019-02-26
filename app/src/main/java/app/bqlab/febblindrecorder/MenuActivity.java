@@ -29,6 +29,7 @@ public class MenuActivity extends AppCompatActivity {
     //variables
     int focus;
     boolean playing;
+    List<String> input;
     //layouts
     LinearLayout menuBody;
     List<View> menuBodyButtons;
@@ -62,11 +63,7 @@ public class MenuActivity extends AppCompatActivity {
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == SPEECH_TO_TEXT) {
                 if (data != null) {
-                    ArrayList<String> input = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-//                    if (input.get(0).equals("전체"))
-//                        checkPermission();
-//                    else
-//                        searchFiles(input.get(0));
+                    input = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                 }
             }
         }
