@@ -78,7 +78,8 @@ public class MenuActivity extends AppCompatActivity {
                                 File renamedFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + name + ".mp4");
                                 Toast.makeText(this, name + " 녹음파일이 저장되었습니다.", Toast.LENGTH_LONG).show();
                                 boolean success = file.renameTo(renamedFile);
-                                Log.d("경로", file.getPath());
+                                if (!success)
+                                    Log.d("실패", file.getPath());
                             } else {
                                 new AlertDialog.Builder(this)
                                         .setCancelable(false)

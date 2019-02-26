@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -21,6 +22,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Locale;
 
 public class RecordActivity extends AppCompatActivity {
@@ -29,17 +31,18 @@ public class RecordActivity extends AppCompatActivity {
     final int SPEECH_TO_TEXT = 1000;
     //variables
     String speech, path, name;
-    boolean recording, playing;
+    boolean recording, speaking;
     //objects
     MediaRecorder mRecorder;
     TextToSpeech mTTS;
+    HashMap<String, String> mTTSMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_record);
         init();
-        checkTTS();
+        installTTS();
         speakFirst();
     }
 
@@ -61,7 +64,16 @@ public class RecordActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        mTTS.shutdown();
+        mTTS.stop();
+    }
+
     private void init() {
+        //initialization
+        mTTSMap = new HashMap<String, String>();
         //setting
         findViewById(R.id.record_bot_left).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -114,7 +126,10 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
-        speak("");
+        if (speaking) {
+            Toast.makeText(this, "음성 안내가 끝났을 때 다시 시도하세요.", Toast.LENGTH_LONG).show();
+            return;
+        }
         ((Button) findViewById(R.id.record_body_start)).setText("녹음중지");
         path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + System.currentTimeMillis()+".mp4";
         if ((ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
@@ -148,7 +163,8 @@ public class RecordActivity extends AppCompatActivity {
         ((Button) findViewById(R.id.record_body_start)).setText("녹음시작");
     }
 
-    private void checkTTS() {
+    private void installTTS() {
+        mTTSMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "unique_id");
         mTTS = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -166,20 +182,37 @@ public class RecordActivity extends AppCompatActivity {
         });
         mTTS.setPitch(0.7f);
         mTTS.setSpeechRate(1.2f);
+        mTTS.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override
+            public void onStart(String utteranceId) {
+                speaking = true;
+            }
+
+            @Override
+            public void onDone(String utteranceId) {
+                speaking = false;
+            }
+
+            @Override
+            public void onError(String utteranceId) {
+
+            }
+        });
     }
 
     private void speak(String text) {
-        mTTS.speak(text, TextToSpeech.QUEUE_FLUSH, null);
+        mTTS.speak(text, TextToSpeech.QUEUE_FLUSH, mTTSMap);
     }
 
     private void speakFirst() {
+        speaking = true;
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(1000);
                     speak("녹음화면");
-                    Thread.sleep(1500);
+                    Thread.sleep(1000);
                     speak("녹음을 시작하려면 실행버튼을 눌러주세요. 녹음이 끝나면 X토글키를 눌러주세요.");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
