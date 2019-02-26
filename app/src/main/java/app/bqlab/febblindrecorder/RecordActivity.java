@@ -40,8 +40,9 @@ public class RecordActivity extends AppCompatActivity {
     //constants
     final int SPEECH_TO_TEXT = 1000;
     //variables
-    String speech, fileDir, fileName, filePath;
     boolean recording, speaking;
+    String speech, fileDir, fileName, filePath, targetPath, targetName;
+    List<String> sourcePathes;
     //objects
     MediaRecorder mRecorder;
     TextToSpeech mTTS;
@@ -83,6 +84,7 @@ public class RecordActivity extends AppCompatActivity {
 
     private void init() {
         //initialization
+        sourcePathes = new ArrayList<>();
         mTTSMap = new HashMap<String, String>();
         //setting
         findViewById(R.id.record_bot_left).setOnClickListener(new View.OnClickListener() {
@@ -118,7 +120,7 @@ public class RecordActivity extends AppCompatActivity {
                 File file = new File(fileDir, fileName);
                 if (file.exists()) {
                     Intent i = new Intent(RecordActivity.this, MenuActivity.class);
-                    i.putExtra("fileName", file.getName());
+                    i.putExtra("fileName", targetName);
                     startActivity(i);
                 } else {
                     Toast.makeText(RecordActivity.this, "녹음파일이 생성되지 않았습니다.", Toast.LENGTH_LONG).show();
@@ -138,44 +140,54 @@ public class RecordActivity extends AppCompatActivity {
     private void startRecording() {
         if (speaking) {
             Toast.makeText(this, "음성 안내가 끝났을 때 다시 시도하세요.", Toast.LENGTH_LONG).show();
-            return;
-        }
-        ((Button) findViewById(R.id.record_body_start)).setText("녹음중지");
-        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
-        fileName = System.currentTimeMillis() + ".mp4";
-        filePath = fileDir + File.separator + fileName;
-        if ((ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
-                || (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
         } else {
-            try {
-                recording = true;
-                setupRecorder();
-                mRecorder.prepare();
-                mRecorder.start();
-            } catch (IOException e) {
-                recording = false;
-                Log.d("startRecording()", "IOException");
-                Toast.makeText(RecordActivity.this, "파일의 경로에 접근할 수 없습니다.", Toast.LENGTH_LONG).show();
-            } catch (IllegalStateException e) {
-                recording = false;
-                Log.d("startRecording()", "IllegalStateException");
-                Toast.makeText(RecordActivity.this, "파일의 경로에 접근할 수 없습니다.", Toast.LENGTH_LONG).show();
+            //레이아웃 세팅
+            ((Button) findViewById(R.id.record_body_start)).setText("녹음중지");
+            //파일 경로 세팅
+            fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
+            fileName = System.currentTimeMillis() + ".mp4";
+            filePath = fileDir + File.separator + fileName;
+            //파일을 이어 붙이기 위한 배열 세팅
+            sourcePathes.add(filePath);
+            //녹음 시작
+            if ((ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
+                    || (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
+            } else {
+                try {
+                    recording = true;
+                    setupRecorder();
+                    mRecorder.prepare();
+                    mRecorder.start();
+                } catch (IOException e) {
+                    recording = false;
+                    Log.d("startRecording()", "IOException");
+                    Toast.makeText(RecordActivity.this, "파일의 경로에 접근할 수 없습니다.", Toast.LENGTH_LONG).show();
+                } catch (IllegalStateException e) {
+                    recording = false;
+                    Log.d("startRecording()", "IllegalStateException");
+                    Toast.makeText(RecordActivity.this, "파일의 경로에 접근할 수 없습니다.", Toast.LENGTH_LONG).show();
+                }
             }
         }
     }
 
     private void stopRecording() {
+        //레이아웃 세팅
+        ((Button) findViewById(R.id.record_body_start)).setText("녹음시작");
+        //녹음 종료
+        recording = false;
         if (mRecorder != null) {
             mRecorder.stop();
             mRecorder.release();
             mRecorder = null;
         }
-        recording = false;
-        ((Button) findViewById(R.id.record_body_start)).setText("녹음시작");
+        targetName = System.currentTimeMillis() + ".mp4";
+        targetPath = fileDir + File.separator + targetName;
+        mergeAudioFiles(sourcePathes, targetPath);
     }
 
-    private boolean mergeAudioFiles(String sources[], String target) {
+    private boolean mergeAudioFiles(List<String> sources, String target) {
         try {
             List<Movie> movies = new ArrayList<>();
             List<Track> tracks = new ArrayList<>();
