@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
@@ -17,7 +16,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -95,7 +93,14 @@ public class RecordActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 stopRecording();
-                startActivity(new Intent(RecordActivity.this, MenuActivity.class));
+                if (new File(path).exists()) {
+                    Intent i =new Intent(RecordActivity.this, MenuActivity.class);
+                    i.putExtra("path", path);
+                    Log.d("경로", path);
+                    startActivity(i);
+                } else {
+                    Toast.makeText(RecordActivity.this, "녹음파일이 생성되지 않았습니다.", Toast.LENGTH_LONG).show();
+                }
             }
         });
     }
@@ -109,6 +114,7 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
+        speak("");
         ((Button) findViewById(R.id.record_body_start)).setText("녹음중지");
         path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + System.currentTimeMillis()+".mp4";
         if ((ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)

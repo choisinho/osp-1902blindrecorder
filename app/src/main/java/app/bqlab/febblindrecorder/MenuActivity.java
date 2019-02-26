@@ -1,19 +1,24 @@
 package app.bqlab.febblindrecorder;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.Environment;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -29,7 +34,8 @@ public class MenuActivity extends AppCompatActivity {
     //variables
     int focus;
     boolean playing;
-    List<String> input;
+    String path;
+    List<String> speech;
     //layouts
     LinearLayout menuBody;
     List<View> menuBodyButtons;
@@ -63,7 +69,28 @@ public class MenuActivity extends AppCompatActivity {
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == SPEECH_TO_TEXT) {
                 if (data != null) {
-                    input = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    speech = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    switch (focus) {
+                        case FILE_SAVE:
+                            String name = speech.get(0);
+                            File file = new File(path);
+                            if (file.exists()) {
+                                File renamedFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + name + ".mp4");
+                                Toast.makeText(this, name + " 녹음파일이 저장되었습니다.", Toast.LENGTH_LONG).show();
+                                boolean success = file.renameTo(renamedFile);
+                                Log.d("경로", file.getPath());
+                            } else {
+                                new AlertDialog.Builder(this)
+                                        .setCancelable(false)
+                                        .setMessage("파일의 경로를 찾을 수 없습니다. 녹음파일이 삭제되었거나 경로가 임의적으로 수정되었습니다. 앱을 재시작하세요.")
+                                        .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                finishAffinity();
+                                            }
+                                        }).show();
+                            }
+                    }
                 }
             }
         }
@@ -73,6 +100,7 @@ public class MenuActivity extends AppCompatActivity {
         //initialization
         menuBody = findViewById(R.id.menu_body);
         menuBodyButtons = new ArrayList<View>();
+        path = getIntent().getStringExtra("path");
         //setting
         for (int i = 0; i < menuBody.getChildCount(); i++)
             menuBodyButtons.add(menuBody.getChildAt(i));
@@ -105,7 +133,11 @@ public class MenuActivity extends AppCompatActivity {
         findViewById(R.id.menu_bot_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                switch (focus) {
+                    case FILE_SAVE:
+                        requestSpeech();
+                        break;
+                }
             }
         });
         findViewById(R.id.menu_bot_enter).setOnClickListener(new View.OnClickListener() {
@@ -164,7 +196,7 @@ public class MenuActivity extends AppCompatActivity {
             public void run() {
                 try {
                     Thread.sleep(500);
-                    speak("노옥음메뉴");
+                    speak("녹음메뉴");
                     Thread.sleep(1500);
                     speak("저장");
                 } catch (InterruptedException e) {
