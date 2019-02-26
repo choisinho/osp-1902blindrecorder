@@ -101,23 +101,27 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 switch (focus) {
                     case FOCUS_VOICE_MEMO:
+                        shutupTTS();
                         checkDirectory();
                         startActivity(new Intent(MainActivity.this, RecordActivity.class));
                         stopPlaying();
                         break;
                     case FOCUS_INSTANT_PLAY:
+                        shutupTTS();
                         checkDirectory();
                         playRecentFile();
                         break;
                     case FOCUS_SEARCH_MEMO:
+                        shutupTTS();
                         checkDirectory();
                         startActivity(new Intent(MainActivity.this, SearchActivity.class));
                         stopPlaying();
                         break;
                     case FOCUS_USER_CHANGE:
-                        Toast.makeText(MainActivity.this, "아직 구현되지 않았습니다.", Toast.LENGTH_LONG).show();
+                        shutupTTS();
                         break;
                     case FOCUS_APP_EXIT:
+                        shutupTTS();
                         new AlertDialog.Builder(MainActivity.this)
                                 .setMessage("앱을 종료합니다.")
                                 .setPositiveButton("확인", new DialogInterface.OnClickListener() {
@@ -140,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 MainActivity.super.onBackPressed();
+                shutupTTS();
             }
         });
         findViewById(R.id.main_bot_enter).setOnClickListener(new View.OnClickListener() {

@@ -53,13 +53,13 @@ public class RecordActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_record);
         init();
-        checkResumedFile();
-        setupTTS();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        setupTTS();
+        checkResumedFile();
         speakFirst();
     }
 
@@ -80,13 +80,6 @@ public class RecordActivity extends AppCompatActivity {
                 }
             }
         }
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        mTTS.shutdown();
-        mTTS.stop();
     }
 
     private void init() {
@@ -148,10 +141,7 @@ public class RecordActivity extends AppCompatActivity {
 
     private void startRecording() {
         //음성안내 정지
-        if (speaking) {
-            mTTS.stop();
-            mTTS.shutdown();
-        }
+        shutupTTS();
         //레이아웃 세팅
         ((Button) findViewById(R.id.record_body_start)).setText("녹음중지");
         //파일 경로 세팅
@@ -184,10 +174,7 @@ public class RecordActivity extends AppCompatActivity {
 
     private void stopRecording() {
         //음성안내 정지
-        if (speaking) {
-            mTTS.stop();
-            mTTS.shutdown();
-        }
+        shutupTTS();
         //레이아웃 세팅
         ((Button) findViewById(R.id.record_body_start)).setText("녹음시작");
         //녹음 종료
@@ -266,6 +253,12 @@ public class RecordActivity extends AppCompatActivity {
         });
     }
 
+    private void shutupTTS() {
+        if (mTTS.isSpeaking()) {
+            mTTS.stop();
+            mTTS.shutdown();
+        }
+    }
     private void speak(String text) {
         mTTS.speak(text, TextToSpeech.QUEUE_FLUSH, mTTSMap);
     }

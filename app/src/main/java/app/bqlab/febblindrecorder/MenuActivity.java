@@ -30,6 +30,7 @@ public class MenuActivity extends AppCompatActivity {
     final int SPEECH_TO_TEXT = 1000;  //STT 데이터 요청
     //variables
     int focus;
+    boolean allowedExit;
     String fileName, fileDir;
     List<String> speech;
     //objects
@@ -43,23 +44,27 @@ public class MenuActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
         init();
-        setupTTS();
+        resetFocus();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        setupTTS();
         speakFirst();
-        resetFocus();
     }
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         if (mTTS != null) {
             mTTS.stop();
             mTTS.shutdown();
         }
-        super.onDestroy();
+        if (!allowedExit) {
+            File file = new File(fileDir, fileName);
+            boolean success = file.delete();
+        }
     }
 
     @Override
@@ -142,25 +147,24 @@ public class MenuActivity extends AppCompatActivity {
         findViewById(R.id.menu_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                File file = new File(fileDir, fileName);
-                boolean deleted;
                 switch (focus) {
                     case FILE_SAVE:
                         requestSpeech();
                         break;
                     case RESUME_RECORD:
+                        allowedExit = true;
                         Intent i = new Intent(MenuActivity.this, RecordActivity.class);
                         i.putExtra("fileName", fileName);
                         startActivity(i);
                         finish();
                         break;
                     case RE_RECORD:
+                        allowedExit = false;
                         startActivity(new Intent(MenuActivity.this, RecordActivity.class));
-                        deleted = file.delete();
                         finish();
                         break;
                     case RETURN_MAIN:
-                        deleted = file.delete();
+                        allowedExit = false;
                         finish();
                         break;
                 }

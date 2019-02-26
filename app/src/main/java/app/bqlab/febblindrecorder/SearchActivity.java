@@ -45,6 +45,12 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        shutupTTS();
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == SPEECH_TO_TEXT) {
@@ -164,6 +170,13 @@ public class SearchActivity extends AppCompatActivity {
         });
         mTTS.setPitch(0.7f);
         mTTS.setSpeechRate(1.2f);
+    }
+
+    private void shutupTTS() {
+        if (mTTS.isSpeaking()) {
+            mTTS.shutdown();
+            mTTS.stop();
+        }
     }
 
     private void speak(String text) {

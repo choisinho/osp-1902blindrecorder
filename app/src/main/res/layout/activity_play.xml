@@ -8,7 +8,7 @@
     tools:context=".MainActivity">
 
     <LinearLayout
-        android:id="@+id/main_body"
+        android:id="@+id/play_body"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="10dp"
@@ -18,6 +18,7 @@
         android:orientation="vertical">
 
         <Button
+            android:id="@+id/play_button"
             style="@style/Base.Widget.AppCompat.Button.Borderless"
             android:layout_width="170dp"
             android:layout_height="170dp"
@@ -26,7 +27,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/main_bot"
+        android:id="@+id/play_bot"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:layout_alignParentBottom="true"
@@ -46,7 +47,7 @@
                 android:layout_height="wrap_content">
 
                 <Button
-                    android:id="@+id/main_bot_up"
+                    android:id="@+id/play_bot_up"
                     style="@style/Base.Widget.AppCompat.Button.Borderless"
                     android:layout_width="45dp"
                     android:layout_height="50dp"
@@ -60,7 +61,7 @@
                 android:orientation="horizontal">
 
                 <Button
-                    android:id="@+id/main_bot_left"
+                    android:id="@+id/play_bot_left"
                     style="@style/Base.Widget.AppCompat.Button.Borderless"
                     android:layout_width="50dp"
                     android:layout_height="45dp"
@@ -68,7 +69,7 @@
                     android:background="@drawable/arrow_left" />
 
                 <Button
-                    android:id="@+id/main_bot_right"
+                    android:id="@+id/play_bot_right"
                     style="@style/Base.Widget.AppCompat.Button.Borderless"
                     android:layout_width="50dp"
                     android:layout_height="45dp"
@@ -80,7 +81,7 @@
                 android:layout_height="wrap_content">
 
                 <Button
-                    android:id="@+id/main_bot_down"
+                    android:id="@+id/play_bot_down"
                     style="@style/Base.Widget.AppCompat.Button.Borderless"
                     android:layout_width="45dp"
                     android:layout_height="50dp"
@@ -95,7 +96,7 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/main_bot_enter"
+                android:id="@+id/play_bot_enter"
                 style="@style/Base.Widget.AppCompat.Button.Borderless"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
@@ -104,7 +105,7 @@
                 android:background="@drawable/toggle_enter" />
 
             <Button
-                android:id="@+id/main_bot_close"
+                android:id="@+id/play_bot_close"
                 style="@style/Base.Widget.AppCompat.Button.Borderless"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
