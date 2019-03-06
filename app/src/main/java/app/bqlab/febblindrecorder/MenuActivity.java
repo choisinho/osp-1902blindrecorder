@@ -12,6 +12,7 @@ import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -81,21 +82,66 @@ public class MenuActivity extends AppCompatActivity {
                             if (file.exists()) {
                                 File renamedFile = new File(fileDir + File.separator, newName + ".mp4");
                                 if (file.renameTo(renamedFile)) {
-                                    Toast.makeText(this, "메모가 저장되었습니다.", Toast.LENGTH_LONG).show();
-                                    finish();
+                                    try {
+                                        speak("녹음파일이 저장되었습니다.");
+                                        Thread.sleep(1600);
+                                        finish();
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                        finish();
+                                    }
                                 }
                             } else {
-                                new AlertDialog.Builder(this)
-                                        .setCancelable(false)
-                                        .setMessage("녹음파일이 삭제되었거나 임의로 수정되었습니다.")
-                                        .setPositiveButton("확인", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                finish();
-                                            }
-                                        }).show();
+                                try {
+                                    speak("녹음파일이 삭제되었거나 임의로 수정되었습니다.");
+                                    Thread.sleep(2000);
+                                    finish();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                    finish();
+                                }
                             }
                     }
+                }
+            }
+        } else {
+            if (requestCode == SPEECH_TO_TEXT) {
+                switch (focus) {
+                    case FILE_SAVE:
+                        int last = 1;
+                        for (File file : new File(fileDir).listFiles()) {
+                            if (file.getName().contains("이름없음")) {
+                                String s1 = file.getName().replace("이름없음", "");
+                                String s2 = s1.replace(".mp4", "");
+                                int temp = Integer.parseInt(s2);
+                                if (last < temp)
+                                    last = temp;
+                            }
+                        }
+                        String newName = "이름없음" + String.valueOf(last+1);
+                        File file = new File(fileDir, fileName);
+                        if (file.exists()) {
+                            File renamedFile = new File(fileDir + File.separator, newName + ".mp4");
+                            if (file.renameTo(renamedFile)) {
+                                try {
+                                    speak("녹음파일이 저장되었습니다.");
+                                    Thread.sleep(1600);
+                                    finish();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                    finish();
+                                }
+                            }
+                        } else {
+                            try {
+                                speak("녹음파일이 삭제되었거나 임의로 수정되었습니다.");
+                                Thread.sleep(2000);
+                                finish();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                                finish();
+                            }
+                        }
                 }
             }
         }
@@ -178,10 +224,7 @@ public class MenuActivity extends AppCompatActivity {
         findViewById(R.id.menu_bot_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(MenuActivity.this, RecordActivity.class);
-                i.putExtra("fileName", fileName);
-                startActivity(i);
-                finish();
+                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
             }
         });
     }

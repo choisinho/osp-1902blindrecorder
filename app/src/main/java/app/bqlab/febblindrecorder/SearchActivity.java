@@ -6,10 +6,12 @@ import android.media.AudioAttributes;
 import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Environment;
+import android.renderscript.Sampler;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -20,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import javax.xml.validation.Validator;
+
 public class SearchActivity extends AppCompatActivity {
 
     //constants
@@ -27,7 +31,8 @@ public class SearchActivity extends AppCompatActivity {
     final int SEARCY_BY_LIST = 1;       //파일 목록
     final int SPEECH_TO_TEXT = 1000;
     //variables
-    int focus, soundMenuEnd, soundDisable;;
+    int focus, soundMenuEnd, soundDisable;
+    ;
     String fileDir;
     ArrayList<String> speech;
     //objects
@@ -75,6 +80,7 @@ public class SearchActivity extends AppCompatActivity {
                         case SEARCH_BY_NAME:
                             String fileName = speech.get(0) + ".mp4";
                             if (new File(fileDir, fileName).exists()) {
+                                speak("파일 찾기에 성공했습니다. 잠시후 파일을 재생합니다.");
                                 Intent i = new Intent(this, PlayActivity.class);
                                 i.putExtra("fileName", fileName);
                                 i.putExtra("flag", "name");
@@ -134,7 +140,10 @@ public class SearchActivity extends AppCompatActivity {
                         requestSpeech();
                         break;
                     case SEARCY_BY_LIST:
-                        startActivity(new Intent(SearchActivity.this, FilesActivity.class));
+                        if (new File(fileDir).list().length != 0)
+                            startActivity(new Intent(SearchActivity.this, FilesActivity.class));
+                        else
+                            speak("저장된 파일이 없습니다.");
                         break;
                 }
             }
@@ -179,7 +188,6 @@ public class SearchActivity extends AppCompatActivity {
         soundDisable = mSoundPool.load(this, R.raw.app_sound_disable, 0);
     }
 
-
     private void setupTTS() {
         mTTS = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
@@ -214,9 +222,9 @@ public class SearchActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(1000);
                     speak("파일찾기메뉴");
-                    Thread.sleep(1500);
+                    Thread.sleep(3000);
                     speakFocus();
                 } catch (InterruptedException e) {
                     e.printStackTrace();

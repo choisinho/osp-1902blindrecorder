@@ -185,11 +185,9 @@ public class RecordActivity extends AppCompatActivity {
                 mRecorder.start();
             } catch (IOException e) {
                 recording = false;
-                Log.d("startRecording()", "IOException");
                 Toast.makeText(RecordActivity.this, "파일의 경로에 접근할 수 없습니다.", Toast.LENGTH_LONG).show();
             } catch (IllegalStateException e) {
                 recording = false;
-                Log.d("startRecording()", "IllegalStateException");
                 Toast.makeText(RecordActivity.this, "파일의 경로에 접근할 수 없습니다.", Toast.LENGTH_LONG).show();
             }
         }
@@ -241,6 +239,8 @@ public class RecordActivity extends AppCompatActivity {
             container.writeContainer(fileChannel);
             fileChannel.close();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NullPointerException e) {
             e.printStackTrace();
         }
     }

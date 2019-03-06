@@ -13,6 +13,7 @@ import android.speech.tts.TextToSpeech;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -258,30 +259,25 @@ public class MainActivity extends AppCompatActivity {
             mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
             mRecorder.setOutputFile(path);
             mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        disablelayouts(false, main);
-                        playing = true;
-                        mPlayer = new MediaPlayer();
-                        mPlayer.setDataSource(path);
-                        mPlayer.prepare();
-                        mPlayer.start();
-                        mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                            @Override
-                            public void onCompletion(MediaPlayer mp) {
-                                playing = false;
-                                disablelayouts(true, main);
-                                setupTTS();
-                                speakFocus();
-                            }
-                        });
-                    } catch (IOException e) {
-                        e.printStackTrace();
+            disablelayouts(false, main);
+            playing = true;
+            try {
+                mPlayer = new MediaPlayer();
+                mPlayer.setDataSource(path);
+                mPlayer.prepare();
+                mPlayer.start();
+                mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mp) {
+                        playing = false;
+                        disablelayouts(true, main);
+                        setupTTS();
+                        speakFocus();
                     }
-                }
-            }).start();
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -312,12 +308,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void disablelayouts(boolean enable, ViewGroup viewGroup){
-        for (int i = 0; i < viewGroup.getChildCount(); i++){
+    private void disablelayouts(boolean enable, ViewGroup viewGroup) {
+        for (int i = 0; i < viewGroup.getChildCount(); i++) {
             View child = viewGroup.getChildAt(i);
             child.setEnabled(enable);
-            if (child instanceof ViewGroup){
-                disablelayouts(enable, (ViewGroup)child);
+            if (child instanceof ViewGroup) {
+                disablelayouts(enable, (ViewGroup) child);
             }
         }
     }

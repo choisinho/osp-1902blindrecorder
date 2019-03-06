@@ -136,6 +136,9 @@ public class FilesActivity extends AppCompatActivity {
                 filesBodyLayouts.add(fileLayout);
                 filesBody.addView(fileLayout);
             }
+            FileLayout fileLayout = new FileLayout(this, "", "");
+            fileLayout.setVisibility(View.INVISIBLE);
+            filesBody.addView(fileLayout);
         }
     }
 
@@ -163,7 +166,6 @@ public class FilesActivity extends AppCompatActivity {
         soundMenuEnd = mSoundPool.load(this, R.raw.app_sound_menu_end, 0);
         soundDisable = mSoundPool.load(this, R.raw.app_sound_disable, 0);
     }
-
 
     private void setupTTS() {
         mTTS = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
@@ -212,6 +214,6 @@ public class FilesActivity extends AppCompatActivity {
 
     private void speakFocus() {
         final Button button = filesBodyLayouts.get(focus).getButton();
-        speak(button.getText().toString().replace(".mp4", ""));
+        speak(String.valueOf(focus + 1) + "번파일." + button.getText().toString().replace(".mp4", ""));
     }
 }
