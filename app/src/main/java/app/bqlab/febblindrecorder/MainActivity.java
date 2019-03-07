@@ -1,6 +1,9 @@
 package app.bqlab.febblindrecorder;
 
 import android.Manifest;
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.AudioAttributes;
@@ -10,10 +13,12 @@ import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.tts.TextToSpeech;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -25,15 +30,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
     //constants
-    final int FOCUS_VOICE_MEMO = 0;     //음성 메모
-    final int FOCUS_INSTANT_PLAY = 1;   //파일 바로 재생
-    final int FOCUS_SEARCH_MEMO = 2;    //메모 찾기
-    final int FOCUS_USER_CHANGE = 3;    //사용자 변경
-    final int FOCUS_APP_EXIT = 4;       //종료
+    final int FOCUS_VOICE_MEMO = 0;             //음성 메모
+    final int FOCUS_INSTANT_PLAY = 1;           //파일 바로 재생
+    final int FOCUS_SEARCH_MEMO = 2;            //메모 찾기
+    final int FOCUS_USER_CHANGE = 3;            //사용자 변경
+    final int FOCUS_APP_EXIT = 4;               //종료
     //variables
     String fileDir;
     List<String> filePathes;
@@ -80,91 +86,149 @@ public class MainActivity extends AppCompatActivity {
             mTTS.stop();
             mTTS.shutdown();
         }
+        if (mPlayer != null) {
+            try {
+                mPlayer.stop();
+                mPlayer.release();
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            }
+        }
         mSoundPool.release();
         mSoundPool = null;
     }
 
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_DPAD_UP:
+                clickRight();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                clickLeft();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+                clickUp();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_RIGHT:
+                clickDown();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_A:
+                clickVToggle();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_Y:
+                clickXToggle();
+                return true;
+            default:
+                return true;
+        }
+    }
+
     private void init() {
-        //initialization
+        //initialize
         main = findViewById(R.id.main);
         mainBody = findViewById(R.id.main_body);
         mainBodyButtons = new ArrayList<View>();
-        //setting
+        //setup
         for (int i = 0; i < mainBody.getChildCount(); i++)
             mainBodyButtons.add(mainBody.getChildAt(i));
         findViewById(R.id.main_bot_up).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                focus--;
-                if (focus < 0) {
-                    mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
-                    focus = 0;
-                }
-                speakFocus();
-                resetFocus();
+                clickUp();
             }
         });
         findViewById(R.id.main_bot_down).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                focus++;
-                if (focus > mainBodyButtons.size() - 1) {
-                    mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
-                    focus = mainBodyButtons.size() - 1;
-                }
-                speakFocus();
-                resetFocus();
+                clickDown();
             }
         });
         findViewById(R.id.main_bot_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                switch (focus) {
-                    case FOCUS_VOICE_MEMO:
-                        shutupTTS();
-                        checkDirectory();
-                        startActivity(new Intent(MainActivity.this, RecordActivity.class));
-                        stopPlaying();
-                        break;
-                    case FOCUS_INSTANT_PLAY:
-                        shutupTTS();
-                        checkDirectory();
-                        playRecentFile();
-                        break;
-                    case FOCUS_SEARCH_MEMO:
-                        shutupTTS();
-                        checkDirectory();
-                        startActivity(new Intent(MainActivity.this, SearchActivity.class));
-                        stopPlaying();
-                        break;
-                    case FOCUS_USER_CHANGE:
-                        shutupTTS();
-                        break;
-                    case FOCUS_APP_EXIT:
-                        shutupTTS();
-                        finishAffinity();
-                }
+                clickRight();
             }
         });
         findViewById(R.id.main_bot_left).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finishAffinity();
-                shutupTTS();
+                clickLeft();
             }
         });
         findViewById(R.id.main_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                clickVToggle();
             }
         });
         findViewById(R.id.main_bot_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                clickXToggle();
             }
         });
+    }
+
+    private void clickUp() {
+        focus--;
+        if (focus < 0) {
+            mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
+            focus = 0;
+        }
+        speakFocus();
+        resetFocus();
+        stopRecentPlaying();
+    }
+
+    private void clickDown() {
+        focus++;
+        if (focus > mainBodyButtons.size() - 1) {
+            mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
+            focus = mainBodyButtons.size() - 1;
+        }
+        speakFocus();
+        resetFocus();
+        stopRecentPlaying();
+    }
+
+    private void clickLeft() {
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+    }
+
+    private void clickRight() {
+        switch (focus) {
+            case FOCUS_VOICE_MEMO:
+                shutupTTS();
+                checkDirectory();
+                startActivity(new Intent(MainActivity.this, RecordActivity.class));
+                stopPlaying();
+                break;
+            case FOCUS_INSTANT_PLAY:
+                checkDirectory();
+                playRecentFile();
+                break;
+            case FOCUS_SEARCH_MEMO:
+                shutupTTS();
+                checkDirectory();
+                startActivity(new Intent(MainActivity.this, SearchActivity.class));
+                stopPlaying();
+                break;
+            case FOCUS_USER_CHANGE:
+                shutupTTS();
+                break;
+            case FOCUS_APP_EXIT:
+                shutupTTS();
+                finishAffinity();
+        }
+    }
+
+    private void clickVToggle() {
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+    }
+
+    private void clickXToggle() {
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void checkDirectory() {
@@ -251,33 +315,49 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void playRecentFile() {
-        if (!playing) {
+        try {
             loadFiles();
             final String path = filePathes.get(filePathes.size() - 1);
-            mRecorder = new MediaRecorder();
-            mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-            mRecorder.setOutputFile(path);
-            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-            disablelayouts(false, main);
-            playing = true;
-            try {
-                mPlayer = new MediaPlayer();
-                mPlayer.setDataSource(path);
-                mPlayer.prepare();
-                mPlayer.start();
-                mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                    @Override
-                    public void onCompletion(MediaPlayer mp) {
-                        playing = false;
-                        disablelayouts(true, main);
-                        setupTTS();
-                        speakFocus();
-                    }
-                });
-            } catch (IOException e) {
-                e.printStackTrace();
+            final String name = path.replace(fileDir + File.separator, "");
+            speak("최근저장메모..." + name.replace(".mp4", ""));
+            Thread.sleep(3000);
+            if (!playing) {
+                mRecorder = new MediaRecorder();
+                mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                mRecorder.setOutputFile(path);
+                mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+                playing = true;
+                try {
+                    mPlayer = new MediaPlayer();
+                    mPlayer.setDataSource(path);
+                    mPlayer.prepare();
+                    mPlayer.start();
+                    mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                        @Override
+                        public void onCompletion(MediaPlayer mp) {
+                            playing = false;
+                            setupTTS();
+                            speakFocus();
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void stopRecentPlaying() {
+        try {
+            mPlayer.stop();
+            mPlayer.release();
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
         }
     }
 
@@ -296,8 +376,12 @@ public class MainActivity extends AppCompatActivity {
             mRecorder = null;
         }
         if (mPlayer != null) {
-            mPlayer.stop();
-            mPlayer = null;
+            try {
+                mPlayer.stop();
+                mPlayer = null;
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -305,16 +389,6 @@ public class MainActivity extends AppCompatActivity {
         if ((ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
                 || (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
-        }
-    }
-
-    private void disablelayouts(boolean enable, ViewGroup viewGroup) {
-        for (int i = 0; i < viewGroup.getChildCount(); i++) {
-            View child = viewGroup.getChildAt(i);
-            child.setEnabled(enable);
-            if (child instanceof ViewGroup) {
-                disablelayouts(enable, (ViewGroup) child);
-            }
         }
     }
 }

@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -59,6 +60,32 @@ public class FilesActivity extends AppCompatActivity {
         shutupTTS();
     }
 
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_DPAD_UP:
+                clickRight();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                clickLeft();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+                clickUp();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_RIGHT:
+                clickDown();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_A:
+                clickVToggle();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_Y:
+                clickXToggle();
+                return true;
+            default:
+                return true;
+        }
+    }
+
     private void init() {
         //initialize
         filesBody = findViewById(R.id.files_body);
@@ -68,62 +95,86 @@ public class FilesActivity extends AppCompatActivity {
         findViewById(R.id.files_bot_up).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                focus--;
-                if (focus < 0) {
-                    mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
-                    focus = 0;
-                }
-                speakFocus();
-                resetFocus();
+                clickUp();
             }
         });
         findViewById(R.id.files_bot_down).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                focus++;
-                if (focus > filesBodyLayouts.size() - 1) {
-                    mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
-                    focus = filesBodyLayouts.size() - 1;
-                }
-                speakFocus();
-                resetFocus();
+                clickDown();
             }
         });
         findViewById(R.id.files_bot_left).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(FilesActivity.this, SearchActivity.class));
-                finish();
+                clickLeft();
             }
         });
         findViewById(R.id.files_bot_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String fileName = fileNames[focus];
-                if (new File(fileDir, fileName).exists()) {
-                    Intent i = new Intent(FilesActivity.this, PlayActivity.class);
-                    i.putExtra("fileName", fileName);
-                    i.putExtra("flag", "list");
-                    startActivity(i);
-                } else {
-                    Toast.makeText(FilesActivity.this, "파일이 존재하지 않습니다.", Toast.LENGTH_LONG).show();
-                    loadFiles();
-                }
+                clickRight();
             }
         });
         findViewById(R.id.files_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                clickVToggle();
             }
         });
         findViewById(R.id.files_bot_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(FilesActivity.this, SearchActivity.class));
-                finish();
+                clickXToggle();
             }
         });
+    }
+
+    private void clickUp() {
+        focus--;
+        if (focus < 0) {
+            mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
+            focus = 0;
+        }
+        speakFocus();
+        resetFocus();
+    }
+
+    private void clickDown() {
+        focus++;
+        if (focus > filesBodyLayouts.size() - 1) {
+            mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
+            focus = filesBodyLayouts.size() - 1;
+        }
+        speakFocus();
+        resetFocus();
+    }
+
+    private void clickLeft() {
+        startActivity(new Intent(FilesActivity.this, SearchActivity.class));
+        finish();
+    }
+
+    private void clickRight() {
+        String fileName = fileNames[focus];
+        if (new File(fileDir, fileName).exists()) {
+            Intent i = new Intent(FilesActivity.this, PlayActivity.class);
+            i.putExtra("fileName", fileName);
+            i.putExtra("flag", "list");
+            startActivity(i);
+        } else {
+            Toast.makeText(FilesActivity.this, "파일이 존재하지 않습니다.", Toast.LENGTH_LONG).show();
+            loadFiles();
+        }
+    }
+
+    private void clickVToggle() {
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+    }
+
+    private void clickXToggle() {
+        startActivity(new Intent(FilesActivity.this, SearchActivity.class));
+        finish();
     }
 
     private void loadFiles() {
@@ -136,9 +187,6 @@ public class FilesActivity extends AppCompatActivity {
                 filesBodyLayouts.add(fileLayout);
                 filesBody.addView(fileLayout);
             }
-            FileLayout fileLayout = new FileLayout(this, "", "");
-            fileLayout.setVisibility(View.INVISIBLE);
-            filesBody.addView(fileLayout);
         }
     }
 

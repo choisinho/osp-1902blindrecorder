@@ -11,6 +11,7 @@ import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.support.v7.app.AppCompatActivity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Toast;
 
@@ -69,6 +70,32 @@ public class PlayActivity extends AppCompatActivity {
         shutupTTS();
     }
 
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_DPAD_UP:
+                clickRight();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                clickLeft();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+                clickUp();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_RIGHT:
+                clickDown();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_A:
+                clickVToggle();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_Y:
+                clickXToggle();
+                return true;
+            default:
+                return true;
+        }
+    }
+
     private void init() {
         //initialize
         fileName = getIntent().getStringExtra("fileName");
@@ -78,51 +105,74 @@ public class PlayActivity extends AppCompatActivity {
         findViewById(R.id.play_bot_up).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                clickUp();
             }
         });
         findViewById(R.id.play_bot_down).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                clickDown();
             }
         });
         findViewById(R.id.play_bot_left).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String flag = getIntent().getStringExtra("flag");
-                if (flag.equals("list")) {
-                    startActivity(new Intent(PlayActivity.this, FilesActivity.class));
-                    finish();
-                } else if (flag.equals("name")) {
-                    startActivity(new Intent(PlayActivity.this, SearchActivity.class));
-                    finish();
-                }
-
+                clickLeft();
             }
         });
         findViewById(R.id.play_bot_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                clickRight();
             }
         });
         findViewById(R.id.play_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                shutupTTS();
-                if (playing)
-                    stopPlaying();
-                else
-                    startPlaying();
+                clickVToggle();
             }
         });
         findViewById(R.id.play_bot_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                clickXToggle();
             }
         });
+    }
+
+    private void clickUp() {
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+    }
+
+    private void clickDown() {
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+    }
+
+    private void clickLeft() {
+        String flag = getIntent().getStringExtra("flag");
+        if (flag.equals("list")) {
+            startActivity(new Intent(PlayActivity.this, FilesActivity.class));
+            finish();
+        } else if (flag.equals("name")) {
+            startActivity(new Intent(PlayActivity.this, SearchActivity.class));
+            finish();
+        }
+    }
+
+    private void clickRight() {
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+    }
+
+    private void clickVToggle() {
+        shutupTTS();
+        if (playing)
+            stopPlaying();
+        else
+            startPlaying();
+    }
+
+    private void clickXToggle() {
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void setupSoundPool() {
@@ -165,8 +215,13 @@ public class PlayActivity extends AppCompatActivity {
 
             @Override
             public void onDone(String utteranceId) {
-                speaking = false;
-                startPlaying();
+                try {
+                    Thread.sleep(2000);
+                    speaking = false;
+                    startPlaying();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -219,7 +274,14 @@ public class PlayActivity extends AppCompatActivity {
                             @Override
                             public void onCompletion(MediaPlayer mp) {
                                 stopPlaying();
-                                startActivity(new Intent(PlayActivity.this, FilesActivity.class));
+                                String flag = getIntent().getStringExtra("flag");
+                                if (flag.equals("list")) {
+                                    startActivity(new Intent(PlayActivity.this, FilesActivity.class));
+                                    finish();
+                                } else if (flag.equals("name")) {
+                                    startActivity(new Intent(PlayActivity.this, SearchActivity.class));
+                                    finish();
+                                }
                                 finish();
                             }
                         });

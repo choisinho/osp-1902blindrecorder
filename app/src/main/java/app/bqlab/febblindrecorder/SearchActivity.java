@@ -12,6 +12,7 @@ import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -59,15 +60,35 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onDestroy() {
+        super.onDestroy();
         shutupTTS();
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        shutupTTS();
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_DPAD_UP:
+                clickRight();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                clickLeft();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+                clickUp();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_RIGHT:
+                clickDown();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_A:
+                clickVToggle();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_Y:
+                clickXToggle();
+                return true;
+            default:
+                return true;
+        }
     }
 
     @Override
@@ -80,14 +101,32 @@ public class SearchActivity extends AppCompatActivity {
                         case SEARCH_BY_NAME:
                             String fileName = speech.get(0) + ".mp4";
                             if (new File(fileDir, fileName).exists()) {
-                                speak("파일 찾기에 성공했습니다. 잠시후 파일을 재생합니다.");
-                                Intent i = new Intent(this, PlayActivity.class);
-                                i.putExtra("fileName", fileName);
-                                i.putExtra("flag", "name");
-                                startActivity(i);
+                                try {
+                                    speak("파일찾기성공");
+                                    Thread.sleep(1500);
+                                    Intent i = new Intent(this, PlayActivity.class);
+                                    i.putExtra("fileName", fileName);
+                                    i.putExtra("flag", "name");
+                                    startActivity(i);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
                             }
                             break;
                     }
+                }
+            }
+        } else {
+            if (requestCode == SPEECH_TO_TEXT) {
+                switch (focus) {
+                    case SEARCH_BY_NAME:
+                        try {
+                            speak("파일찾기실패");
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        break;
                 }
             }
         }
@@ -104,63 +143,88 @@ public class SearchActivity extends AppCompatActivity {
         findViewById(R.id.search_bot_up).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                focus--;
-                if (focus < 0) {
-                    mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
-                    focus = 0;
-                }
-                speakFocus();
-                resetFocus();
+                clickUp();
             }
         });
         findViewById(R.id.search_bot_down).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                focus++;
-                if (focus > searchBodyButtons.size() - 1) {
-                    mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
-                    focus = searchBodyButtons.size() - 1;
-                }
-                speakFocus();
-                resetFocus();
+                clickDown();
             }
         });
         findViewById(R.id.search_bot_left).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(SearchActivity.this, MainActivity.class));
-                finish();
+                clickLeft();
             }
         });
         findViewById(R.id.search_bot_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                switch (focus) {
-                    case SEARCH_BY_NAME:
-                        requestSpeech();
-                        break;
-                    case SEARCY_BY_LIST:
-                        if (new File(fileDir).list().length != 0)
-                            startActivity(new Intent(SearchActivity.this, FilesActivity.class));
-                        else
-                            speak("저장된 파일이 없습니다.");
-                        break;
-                }
+                clickRight();
             }
         });
         findViewById(R.id.search_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                clickVToggle();
             }
         });
         findViewById(R.id.search_bot_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(SearchActivity.this, MainActivity.class));
-                finish();
+                clickXToggle();
             }
         });
+    }
+
+    private void clickUp() {
+        focus--;
+        if (focus < 0) {
+            mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
+            focus = 0;
+        }
+        speakFocus();
+        resetFocus();
+    }
+
+    private void clickDown() {
+        focus++;
+        if (focus > searchBodyButtons.size() - 1) {
+            mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
+            focus = searchBodyButtons.size() - 1;
+        }
+        speakFocus();
+        resetFocus();
+    }
+
+    private void clickLeft() {
+        startActivity(new Intent(SearchActivity.this, MainActivity.class));
+        finish();
+    }
+
+    private void clickRight() {
+        switch (focus) {
+            case SEARCH_BY_NAME:
+                shutupTTS();
+                requestSpeech();
+                break;
+            case SEARCY_BY_LIST:
+                if (new File(fileDir).list().length != 0)
+                    startActivity(new Intent(SearchActivity.this, FilesActivity.class));
+                else
+                    speak("저장된 파일이 없습니다.");
+                break;
+        }
+    }
+
+    private void clickVToggle() {
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+    }
+
+    private void clickXToggle() {
+        startActivity(new Intent(SearchActivity.this, MainActivity.class));
+        finish();
     }
 
     private void resetFocus() {
@@ -222,9 +286,9 @@ public class SearchActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(500);
                     speak("파일찾기메뉴");
-                    Thread.sleep(3000);
+                    Thread.sleep(1500);
                     speakFocus();
                 } catch (InterruptedException e) {
                     e.printStackTrace();

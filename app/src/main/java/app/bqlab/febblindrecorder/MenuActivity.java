@@ -13,6 +13,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -66,6 +67,32 @@ public class MenuActivity extends AppCompatActivity {
         if (!allowedExit) {
             File file = new File(fileDir, fileName);
             boolean success = file.delete();
+        }
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_DPAD_UP:
+                clickRight();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                clickLeft();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+                clickUp();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_RIGHT:
+                clickDown();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_A:
+                clickVToggle();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_Y:
+                clickXToggle();
+                return true;
+            default:
+                return true;
         }
     }
 
@@ -159,74 +186,98 @@ public class MenuActivity extends AppCompatActivity {
         findViewById(R.id.menu_bot_up).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                focus--;
-                if (focus < 0) {
-                    mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
-                    focus = 0;
-                }
-                speakFocus();
-                resetFocus();
+                clickUp();
             }
         });
         findViewById(R.id.menu_bot_down).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                focus++;
-                if (focus > menuBodyButtons.size() - 1) {
-                    focus = menuBodyButtons.size() - 1;
-                    mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
-                }
-                speakFocus();
-                resetFocus();
+                clickDown();
             }
         });
         findViewById(R.id.menu_bot_left).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(MenuActivity.this, RecordActivity.class);
-                i.putExtra("fileName", fileName);
-                startActivity(i);
-                finish();
+                clickLeft();
             }
         });
         findViewById(R.id.menu_bot_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                clickRight();
             }
         });
         findViewById(R.id.menu_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                switch (focus) {
-                    case FILE_SAVE:
-                        requestSpeech();
-                        break;
-                    case RESUME_RECORD:
-                        allowedExit = true;
-                        Intent i = new Intent(MenuActivity.this, RecordActivity.class);
-                        i.putExtra("fileName", fileName);
-                        startActivity(i);
-                        finish();
-                        break;
-                    case RE_RECORD:
-                        allowedExit = false;
-                        startActivity(new Intent(MenuActivity.this, RecordActivity.class));
-                        finish();
-                        break;
-                    case RETURN_MAIN:
-                        allowedExit = false;
-                        finish();
-                        break;
-                }
+                clickVToggle();
             }
         });
         findViewById(R.id.menu_bot_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                clickXToggle();
             }
         });
+    }
+
+    private void clickUp() {
+        focus--;
+        if (focus < 0) {
+            mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
+            focus = 0;
+        }
+        speakFocus();
+        resetFocus();
+    }
+
+    private void clickDown() {
+        focus++;
+        if (focus > menuBodyButtons.size() - 1) {
+            focus = menuBodyButtons.size() - 1;
+            mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
+        }
+        speakFocus();
+        resetFocus();
+    }
+
+    private void clickLeft() {
+        Intent i = new Intent(MenuActivity.this, RecordActivity.class);
+        i.putExtra("fileName", fileName);
+        startActivity(i);
+        finish();
+    }
+
+    private void clickRight() {
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+    }
+
+    private void clickVToggle() {
+        switch (focus) {
+            case FILE_SAVE:
+                requestSpeech();
+                break;
+            case RESUME_RECORD:
+                allowedExit = true;
+                Intent i = new Intent(MenuActivity.this, RecordActivity.class);
+                i.putExtra("fileName", fileName);
+                startActivity(i);
+                finish();
+                break;
+            case RE_RECORD:
+                allowedExit = false;
+                startActivity(new Intent(MenuActivity.this, RecordActivity.class));
+                finish();
+                break;
+            case RETURN_MAIN:
+                allowedExit = false;
+                finish();
+                break;
+        }
+    }
+
+    private void clickXToggle() {
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void resetFocus() {
@@ -305,7 +356,12 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void requestSpeech() {
-        speak("파일명을 말하세요.");
+        try {
+            speak("파일명을 말하세요.");
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.KOREA);

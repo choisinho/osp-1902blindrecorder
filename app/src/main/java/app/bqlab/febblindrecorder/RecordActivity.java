@@ -16,6 +16,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -81,6 +82,32 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_DPAD_UP:
+                clickRight();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                clickLeft();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+                clickUp();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_RIGHT:
+                clickDown();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_A:
+                clickVToggle();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_Y:
+                clickXToggle();
+                return true;
+            default:
+                return true;
+        }
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == SPEECH_TO_TEXT) {
@@ -100,59 +127,83 @@ public class RecordActivity extends AppCompatActivity {
         findViewById(R.id.record_bot_up).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                clickUp();
             }
         });
         findViewById(R.id.record_bot_down).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                clickDown();
             }
         });
         findViewById(R.id.record_bot_left).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(RecordActivity.this, MainActivity.class));
-                finish();
+                clickLeft();
             }
         });
         findViewById(R.id.record_bot_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                clickRight();
             }
         });
         findViewById(R.id.record_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!recording) {
-                    mSoundPool.play(soundStartEnd, 1, 1, 0, 0, 1);
-                    startRecording();
-                } else {
-                    stopRecording();
-                    mSoundPool.play(soundStartEnd, 1, 1, 0, 0, 1);
-                }
+                clickVToggle();
             }
         });
         findViewById(R.id.record_bot_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (recording)
-                    stopRecording();
-                if (targetName != null) {
-                    //소스 파일 병합
-                    mergeAudioFiles(sourcePathes, targetPath);
-                    cleanupSources();
-                    //파일명, 소스 파일 리스트 전달
-                    Intent i = new Intent(RecordActivity.this, MenuActivity.class);
-                    i.putExtra("fileName", targetName);
-                    startActivity(i);
-                    finish();
-                } else {
-                    speak("파일을 찾을 수 없습니다.");
-                }
+                clickXToggle();
             }
         });
+    }
+
+    private void clickUp() {
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+    }
+
+    private void clickDown() {
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+    }
+
+    private void clickLeft() {
+        startActivity(new Intent(RecordActivity.this, MainActivity.class));
+        finish();
+    }
+
+    private void clickRight() {
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+    }
+
+    private void clickVToggle() {
+        if (!recording) {
+            mSoundPool.play(soundStartEnd, 1, 1, 0, 0, 1);
+            startRecording();
+        } else {
+            stopRecording();
+            mSoundPool.play(soundStartEnd, 1, 1, 0, 0, 1);
+        }
+    }
+
+    private void clickXToggle() {
+        if (recording)
+            stopRecording();
+        if (targetName != null) {
+            //소스 파일 병합
+            mergeAudioFiles(sourcePathes, targetPath);
+            cleanupSources();
+            //파일명, 소스 파일 리스트 전달
+            Intent i = new Intent(RecordActivity.this, MenuActivity.class);
+            i.putExtra("fileName", targetName);
+            startActivity(i);
+            finish();
+        } else {
+            speak("파일을 찾을 수 없습니다.");
+        }
     }
 
     private void setupRecorder() {
