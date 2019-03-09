@@ -249,10 +249,12 @@ public class PlayActivity extends AppCompatActivity {
             public void run() {
                 try {
                     Thread.sleep(500);
+                    //STT로 검색하여 이 화면에 도달하였을 경우 추가적으로 음성 출력
                     if (getIntent().getStringExtra("searchResult") != null) {
                         speak(getIntent().getStringExtra("searchResult"));
                         Thread.sleep(1500);
                     }
+                    //파일 정보 음성으로 출력
                     speak(fileName.replace(".mp4", "") + new SimpleDateFormat("yyyy년 MM월 dd일").format(mFile.lastModified()));
                     Thread.sleep(3000);
                 } catch (InterruptedException e) {
@@ -264,12 +266,15 @@ public class PlayActivity extends AppCompatActivity {
 
     private void startPlaying() {
         if (!playing) {
+            //파일 경로 지정
             filePath = fileDir + File.separator + fileName;
+            //MediaRecorder 속성 세팅 (확장자, 코덱 등)
             mRecorder = new MediaRecorder();
             mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
             mRecorder.setOutputFile(filePath);
             mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            //녹음파일 MediaPlayer를 활용하여 재생
             new Thread(new Runnable() {
                 @Override
                 public void run() {

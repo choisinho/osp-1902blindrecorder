@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        //앱이 재개될 때 TTS를 세팅한 후 음성 안내
         setupTTS();
         speakFirst();
     }
@@ -77,12 +78,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        //앱이 중지될 때 TTS 음성을 강제로 중지
         shutupTTS();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        //앱이 종료될 때 서비스 예외처리
         if (mTTS != null) {
             mTTS.stop();
             mTTS.shutdown();
@@ -102,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         switch (keyCode) {
+            //각 키에 따른 기능 구현
             case KeyEvent.KEYCODE_DPAD_UP:
                 clickRight();
                 return true;
@@ -131,8 +135,10 @@ public class MainActivity extends AppCompatActivity {
         mainBody = findViewById(R.id.main_body);
         mainBodyButtons = new ArrayList<View>();
         //setup
+        //포커스 처리를 위해 버튼 리스트에 버튼들 적재
         for (int i = 0; i < mainBody.getChildCount(); i++)
             mainBodyButtons.add(mainBody.getChildAt(i));
+        //각 키에 따른 클릭 이벤트 처리
         findViewById(R.id.main_bot_up).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -233,7 +239,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkDirectory() {
+        //음성메모장 폴더가 있는 지 확인
         fileDir = Environment.getExternalStorageDirectory() + File.separator + "음성메모장";
+        //없을 경우 생성
         mFile = new File(fileDir);
         boolean success;
         if (!mFile.exists())
@@ -253,19 +261,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupSoundPool() {
+        //음성파일 속성 세팅
         AudioAttributes audioAttributes = new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build();
+        //SoundPool 속성 세팅
         mSoundPool = new SoundPool.Builder()
                 .setMaxStreams(2)
                 .setAudioAttributes(audioAttributes)
                 .build();
+        //두 효과음 SoundPool에 등록
         soundMenuEnd = mSoundPool.load(this, R.raw.app_sound_menu_end, 0);
         soundDisable = mSoundPool.load(this, R.raw.app_sound_disable, 0);
     }
 
     private void setupTTS() {
+        //TTS 지원 확인 및 속성 세팅
         mTTS = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -286,15 +298,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void shutupTTS() {
+        //TTS 음성 강제 중지
         mTTS.shutdown();
         mTTS.stop();
     }
 
     private void speak(String text) {
+        //TTS에 음성 출력 명령
         mTTS.speak(text, TextToSpeech.QUEUE_FLUSH, null);
     }
 
     private void speakFirst() {
+        //최초 화면 실행시 출력되는 음성 설정
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -311,24 +326,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void speakFocus() {
+        //현재 포커스를 가진 버튼 텍스트 음성으로 출력
         final Button button = (Button) mainBodyButtons.get(focus);
         speak(button.getText().toString());
     }
 
     private void playRecentFile() {
-        loadFiles();
-        String filePath = null;
-        final String latestFile = getSharedPreferences("setting", MODE_PRIVATE).getString("LATEST_RECORD_FILE", "");
+        loadFiles(); //파일 리스트 동기화
+        String filePath = null; //파일 경로 선언
+        final String latestFile = getSharedPreferences("setting", MODE_PRIVATE).getString("LATEST_RECORD_FILE", ""); //최근 파일 이름 불러오기
         for (String path : filePathes) {
             assert latestFile != null;
             if (path.contains(latestFile)) {
-                filePath = path;
+                filePath = path; //최근 파일에 해당하는 파일 찾기
             }
         }
         if (filePath == null) {
             speak("최근 저장한 파일을 찾을 수 없습니다.");
         } else {
             try {
+                //최근파일 재생
                 speak("최근저장메모");
                 Thread.sleep(1000);
                 speak(latestFile);
@@ -364,6 +381,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void stopRecentPlaying() {
+        //최근 파일 재생 중지
         try {
             mPlayer.stop();
             mPlayer.release();
@@ -384,6 +402,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void stopPlaying() {
+        //파일 재생 중지
         if (mRecorder != null) {
             mRecorder.release();
             mRecorder = null;
@@ -399,6 +418,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void requestPermissions() {
+        //권한 체크
         if ((ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
                 || (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 0);

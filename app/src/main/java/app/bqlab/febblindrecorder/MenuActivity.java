@@ -101,9 +101,11 @@ public class MenuActivity extends AppCompatActivity {
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == SPEECH_TO_TEXT) {
                 if (data != null) {
+                    //STT 음성 입력 불러옴
                     speech = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     switch (focus) {
                         case FILE_SAVE:
+                            //포커스가 '파일 저장'에 있을 경우 입력된 이름에 따라 녹음파일 저장(이름이 지정되지 않았을 경우 159... 형태의 난수로된 이름으로 지정됨)
                             String newName = speech.get(0);
                             File file = new File(fileDir, fileName);
                             if (file.exists()) {
@@ -121,6 +123,7 @@ public class MenuActivity extends AppCompatActivity {
                                 }
                             } else {
                                 try {
+                                    //사용자가 임의로 파일 겨로에 접근하여 삭제했을 경우 발생하는 오류 예외처리
                                     speak("녹음파일이 삭제되었거나 임의로 수정되었습니다.");
                                     Thread.sleep(2000);
                                     finish();
@@ -137,6 +140,7 @@ public class MenuActivity extends AppCompatActivity {
                 switch (focus) {
                     case FILE_SAVE:
                         int last = 1;
+                        //사용자가 정확한 발음으로 음성입력하지 않았을 경우 이름은 이름없음N과 같은 형태로 지정되도록 설정
                         for (File file : new File(fileDir).listFiles()) {
                             if (file.getName().contains("이름없음")) {
                                 String s1 = file.getName().replace("이름없음", "");
@@ -144,9 +148,10 @@ public class MenuActivity extends AppCompatActivity {
                                 int temp = Integer.parseInt(s2);
                                 if (last < temp)
                                     last = temp;
+                                //가장 마지막 숫자를 검색
                             }
                         }
-                        String newName = "이름없음" + String.valueOf(last+1);
+                        String newName = "이름없음" + String.valueOf(last+1); //가장 마지막 숫자보다 1 더 큰 숫자를 끝에 추가
                         File file = new File(fileDir, fileName);
                         if (file.exists()) {
                             File renamedFile = new File(fileDir + File.separator, newName + ".mp4");
@@ -260,13 +265,13 @@ public class MenuActivity extends AppCompatActivity {
                 requestSpeech();
                 break;
             case RESUME_RECORD:
-                allowedExit = true;
+                allowedExit = true; //alowedExit는 소스파일을 삭제할지 말지를 결정하는 플래그, 이 경우는 소스파일을 삭제하지 않고 이어 녹음함
                 Intent i = new Intent(MenuActivity.this, RecordActivity.class);
                 i.putExtra("fileName", fileName);
                 startActivity(i);
                 finish();
                 break;
-            case RE_RECORD:
+            case RE_RECORD: //소스파일을 삭제하는 경우
                 allowedExit = false;
                 startActivity(new Intent(MenuActivity.this, RecordActivity.class));
                 finish();

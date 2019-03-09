@@ -85,6 +85,7 @@ public class RecordActivity extends AppCompatActivity {
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         switch (keyCode) {
+            //키 입력 이벤트 처리
             case KeyEvent.KEYCODE_DPAD_UP:
                 clickRight();
                 return true;
@@ -113,6 +114,7 @@ public class RecordActivity extends AppCompatActivity {
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == SPEECH_TO_TEXT) {
                 if (data != null) {
+                    //STT 입력 불러오기
                     ArrayList<String> input = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     speech = input.get(0);
                 }
@@ -208,6 +210,7 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void setupRecorder() {
+        //MediaRecorder 속성 세팅
         mRecorder = new MediaRecorder();
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
@@ -266,6 +269,7 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void cleanupSources() {
+        //불필요한 녹음소스 제거
         for (String path : sourcePathes) {
             String name = path.replace(fileDir + File.separator, "");
             File file = new File(fileDir, name);
@@ -274,6 +278,7 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void mergeAudioFiles(List<String> sources, String target) {
+        //녹음 소스파일 병합(사용자가 녹음파일을 저장할 때 분리된 모든 소스파일을 병합하여 하나로 만듦)
         try {
             List<Movie> movies = new ArrayList<>();
             List<Track> tracks = new ArrayList<>();
@@ -284,7 +289,7 @@ public class RecordActivity extends AppCompatActivity {
             Movie output = new Movie();
             if (!tracks.isEmpty())
                 output.addTrack(new AppendTrack(tracks.toArray(new Track[0])));
-            Container container = new DefaultMp4Builder().build(output);
+            Container container = new DefaultMp4Builder().build(output); //라이브러리 사용
             FileChannel fileChannel = new RandomAccessFile(target, "rw").getChannel();
             container.writeContainer(fileChannel);
             fileChannel.close();
@@ -356,14 +361,16 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void checkResumedFile() {
-        String resumedFile = getIntent().getStringExtra("fileName");
+        //이어서 녹음 버튼을 클릭했을 시 소스파일을 인식해야 함
+        //작업과정: 녹화시작 -> 녹화종료 -> 1592..로 된 소스파일 생성 -> @토글클릭 -> 소스파일 모두 병합 -> 메뉴화면으로 이동(소스파일명 전달됨) -> 이어서 녹음
+        String resumedFile = getIntent().getStringExtra("fileName"); //이 파일이 이어서 녹음될 소스파일(병합된 소스파일)
         if (resumedFile != null) {
-            sourcePathes.add(fileDir + File.separator + resumedFile);
+            sourcePathes.add(fileDir + File.separator + resumedFile); //병합될 파일 리스트(만약 @토글을 클릭시 이 리스트 속 모든 파일은 다시 병합됨)
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        LinearLayout bot = findViewById(R.id.record_bot);
+                        //하단메뉴(일명 조이패드) 레이아웃 비활성화
                         findViewById(R.id.record_bot_up).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -403,6 +410,7 @@ public class RecordActivity extends AppCompatActivity {
                         Thread.sleep(1000);
                         speak("잠시 후 녹음이 다시 진행됩니다.");
                         Thread.sleep(2500);
+                        //녹음이 시작되고 나서부터는 하단메뉴 활성화(버그를 해결하기 위해 채택된 최선의 방법)
                         findViewById(R.id.record_bot_up).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {

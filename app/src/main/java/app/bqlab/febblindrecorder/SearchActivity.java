@@ -101,7 +101,7 @@ public class SearchActivity extends AppCompatActivity {
                                 Intent i = new Intent(this, PlayActivity.class);
                                 i.putExtra("fileName", fileName);
                                 i.putExtra("flag", "name");
-                                i.putExtra("searchResult", "파일찾기성공");
+                                i.putExtra("searchResult", "파일찾기성공"); //PlayActivity로 이동할 때 성공 여부를 전달함
                                 startActivity(i);
                             }
                             break;

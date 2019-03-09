@@ -177,14 +177,16 @@ public class FilesActivity extends AppCompatActivity {
 
     private void clickXToggle() {
         if (clicked) {
+            //두번째 클릭
             File file = new File(fileDir, fileNames[focus]);
             boolean success = file.delete();
             loadFiles();
             resetFocus();
         } else {
+            //첫번째 클릭
             clicked = true;
             speak("한번 더 누르면 파일이 삭제됩니다.");
-            new CountDownTimer(6000, 1000) {
+            new CountDownTimer(6000, 1000) { //딜레이 동안 한번 더 토글 클릭 입력시 파일 삭제
                 @Override
                 public void onTick(long millisUntilFinished) {
 
@@ -199,6 +201,7 @@ public class FilesActivity extends AppCompatActivity {
     }
 
     private void loadFiles() {
+        //파일을 커스텀 레이아웃인 FileLayout으로 치환하여 뷰그룹에 추가(파일 리스트->레이아웃 그룹으로 변환 정도로 이해하면 쉽습니다)
         filesBody.removeAllViews();
         File dir = new File(fileDir);
         fileNames = dir.list();
