@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
@@ -215,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
                 stopPlaying();
                 break;
             case FOCUS_USER_CHANGE:
-                shutupTTS();
+                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
                 break;
             case FOCUS_APP_EXIT:
                 shutupTTS();
@@ -315,38 +316,50 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void playRecentFile() {
-        try {
-            loadFiles();
-            final String path = filePathes.get(filePathes.size() - 1);
-            final String name = path.replace(fileDir + File.separator, "");
-            speak("최근저장메모..." + name.replace(".mp4", ""));
-            Thread.sleep(3000);
-            if (!playing) {
-                mRecorder = new MediaRecorder();
-                mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-                mRecorder.setOutputFile(path);
-                mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-                playing = true;
-                try {
-                    mPlayer = new MediaPlayer();
-                    mPlayer.setDataSource(path);
-                    mPlayer.prepare();
-                    mPlayer.start();
-                    mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                        @Override
-                        public void onCompletion(MediaPlayer mp) {
-                            playing = false;
-                            setupTTS();
-                            speakFocus();
-                        }
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        loadFiles();
+        String filePath = null;
+        final String latestFile = getSharedPreferences("setting", MODE_PRIVATE).getString("LATEST_RECORD_FILE", "");
+        for (String path : filePathes) {
+            assert latestFile != null;
+            if (path.contains(latestFile)) {
+                filePath = path;
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        }
+        if (filePath == null) {
+            speak("최근 저장한 파일을 찾을 수 없습니다.");
+        } else {
+            try {
+                speak("최근저장메모");
+                Thread.sleep(1000);
+                speak(latestFile);
+                Thread.sleep(3000);
+                if (!playing) {
+                    mRecorder = new MediaRecorder();
+                    mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                    mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                    mRecorder.setOutputFile(filePath);
+                    mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+                    playing = true;
+                    try {
+                        mPlayer = new MediaPlayer();
+                        mPlayer.setDataSource(filePath);
+                        mPlayer.prepare();
+                        mPlayer.start();
+                        mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                            @Override
+                            public void onCompletion(MediaPlayer mp) {
+                                playing = false;
+                                setupTTS();
+                                speakFocus();
+                            }
+                        });
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 

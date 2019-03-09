@@ -19,6 +19,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.coremedia.iso.boxes.Container;
@@ -202,7 +203,7 @@ public class RecordActivity extends AppCompatActivity {
             startActivity(i);
             finish();
         } else {
-            speak("파일을 찾을 수 없습니다.");
+            speak("녹음파일이 생성되지 않았습니다.");
         }
     }
 
@@ -236,10 +237,8 @@ public class RecordActivity extends AppCompatActivity {
                 mRecorder.start();
             } catch (IOException e) {
                 recording = false;
-                Toast.makeText(RecordActivity.this, "파일의 경로에 접근할 수 없습니다.", Toast.LENGTH_LONG).show();
             } catch (IllegalStateException e) {
                 recording = false;
-                Toast.makeText(RecordActivity.this, "파일의 경로에 접근할 수 없습니다.", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -364,9 +363,82 @@ public class RecordActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     try {
+                        LinearLayout bot = findViewById(R.id.record_bot);
+                        findViewById(R.id.record_bot_up).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                            }
+                        });
+                        findViewById(R.id.record_bot_down).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                            }
+                        });
+                        findViewById(R.id.record_bot_left).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                            }
+                        });
+                        findViewById(R.id.record_bot_right).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                            }
+                        });
+                        findViewById(R.id.record_bot_enter).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                            }
+                        });
+                        findViewById(R.id.record_bot_close).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                            }
+                        });
                         Thread.sleep(1000);
                         speak("잠시 후 녹음이 다시 진행됩니다.");
                         Thread.sleep(2500);
+                        findViewById(R.id.record_bot_up).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                clickUp();
+                            }
+                        });
+                        findViewById(R.id.record_bot_down).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                clickDown();
+                            }
+                        });
+                        findViewById(R.id.record_bot_left).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                clickLeft();
+                            }
+                        });
+                        findViewById(R.id.record_bot_right).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                clickRight();
+                            }
+                        });
+                        findViewById(R.id.record_bot_enter).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                clickVToggle();
+                            }
+                        });
+                        findViewById(R.id.record_bot_close).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                clickXToggle();
+                            }
+                        });
                         if (!recording) {
                             startRecording();
                         } else {

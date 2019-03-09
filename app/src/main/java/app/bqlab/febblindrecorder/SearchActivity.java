@@ -6,7 +6,6 @@ import android.media.AudioAttributes;
 import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Environment;
-import android.renderscript.Sampler;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
@@ -23,8 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import javax.xml.validation.Validator;
-
 public class SearchActivity extends AppCompatActivity {
 
     //constants
@@ -33,7 +30,6 @@ public class SearchActivity extends AppCompatActivity {
     final int SPEECH_TO_TEXT = 1000;
     //variables
     int focus, soundMenuEnd, soundDisable;
-    ;
     String fileDir;
     ArrayList<String> speech;
     //objects
@@ -48,14 +44,14 @@ public class SearchActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
         init();
-        resetFocus();
+        setupTTS();
         setupSoundPool();
+        resetFocus();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        setupTTS();
         speakFirst();
     }
 
@@ -99,34 +95,17 @@ public class SearchActivity extends AppCompatActivity {
                     speech = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     switch (focus) {
                         case SEARCH_BY_NAME:
+                            shutupTTS();
                             String fileName = speech.get(0) + ".mp4";
                             if (new File(fileDir, fileName).exists()) {
-                                try {
-                                    speak("파일찾기성공");
-                                    Thread.sleep(1500);
-                                    Intent i = new Intent(this, PlayActivity.class);
-                                    i.putExtra("fileName", fileName);
-                                    i.putExtra("flag", "name");
-                                    startActivity(i);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
+                                Intent i = new Intent(this, PlayActivity.class);
+                                i.putExtra("fileName", fileName);
+                                i.putExtra("flag", "name");
+                                i.putExtra("searchResult", "파일찾기성공");
+                                startActivity(i);
                             }
                             break;
                     }
-                }
-            }
-        } else {
-            if (requestCode == SPEECH_TO_TEXT) {
-                switch (focus) {
-                    case SEARCH_BY_NAME:
-                        try {
-                            speak("파일찾기실패");
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        break;
                 }
             }
         }
@@ -223,8 +202,7 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     private void clickXToggle() {
-        startActivity(new Intent(SearchActivity.this, MainActivity.class));
-        finish();
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void resetFocus() {

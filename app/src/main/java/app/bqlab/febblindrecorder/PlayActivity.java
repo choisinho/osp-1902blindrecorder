@@ -11,6 +11,7 @@ import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Toast;
@@ -97,6 +98,7 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void init() {
+        //check
         //initialize
         fileName = getIntent().getStringExtra("fileName");
         fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
@@ -247,7 +249,12 @@ public class PlayActivity extends AppCompatActivity {
             public void run() {
                 try {
                     Thread.sleep(500);
+                    if (getIntent().getStringExtra("searchResult") != null) {
+                        speak(getIntent().getStringExtra("searchResult"));
+                        Thread.sleep(1500);
+                    }
                     speak(fileName.replace(".mp4", "") + new SimpleDateFormat("yyyy년 MM월 dd일").format(mFile.lastModified()));
+                    Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

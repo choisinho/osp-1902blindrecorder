@@ -92,15 +92,15 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:paddingHorizontal="50dp">
 
             <Button
                 android:id="@+id/files_bot_enter"
                 style="@style/Base.Widget.AppCompat.Button.Borderless"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
-                android:layout_marginStart="50dp"
-                android:layout_marginEnd="25dp"
+                android:layout_marginBottom="25dp"
                 android:background="@drawable/toggle_enter" />
 
             <Button
@@ -108,7 +108,6 @@
                 style="@style/Base.Widget.AppCompat.Button.Borderless"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
-                android:layout_marginEnd="25dp"
                 android:background="@drawable/toggle_close" />
         </LinearLayout>
     </LinearLayout>

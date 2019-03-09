@@ -4,9 +4,11 @@ import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
@@ -17,10 +19,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
 
 public class FilesActivity extends AppCompatActivity {
 
     //variables
+    boolean clicked;
     int focus, soundMenuEnd, soundDisable;
     String fileDir;
     String[] fileNames;
@@ -163,7 +167,6 @@ public class FilesActivity extends AppCompatActivity {
             i.putExtra("flag", "list");
             startActivity(i);
         } else {
-            Toast.makeText(FilesActivity.this, "파일이 존재하지 않습니다.", Toast.LENGTH_LONG).show();
             loadFiles();
         }
     }
@@ -173,13 +176,33 @@ public class FilesActivity extends AppCompatActivity {
     }
 
     private void clickXToggle() {
-        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+        if (clicked) {
+            File file = new File(fileDir, fileNames[focus]);
+            boolean success = file.delete();
+            loadFiles();
+            resetFocus();
+        } else {
+            clicked = true;
+            speak("한번 더 누르면 파일이 삭제됩니다.");
+            new CountDownTimer(3000, 1000) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+
+                }
+
+                @Override
+                public void onFinish() {
+                    clicked = false;
+                }
+            }.start();
+        }
     }
 
     private void loadFiles() {
         filesBody.removeAllViews();
         File dir = new File(fileDir);
         fileNames = dir.list();
+        filesBodyLayouts = new ArrayList<>();
         if (fileNames.length != 0) {
             for (int i = 0; i < fileNames.length; i++) {
                 FileLayout fileLayout = new FileLayout(this, String.valueOf(i + 1), fileNames[i]);
@@ -260,7 +283,8 @@ public class FilesActivity extends AppCompatActivity {
     }
 
     private void speakFocus() {
+        Log.d("사이즈", String.valueOf(filesBodyLayouts.size()));
         final Button button = filesBodyLayouts.get(focus).getButton();
-        speak(String.valueOf(focus + 1) + "번파일." + button.getText().toString().replace(".mp4", ""));
+        speak(String.valueOf(focus + 1) + "번파일 " + button.getText().toString().replace(".mp4", ""));
     }
 }

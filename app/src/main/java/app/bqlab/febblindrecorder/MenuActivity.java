@@ -110,6 +110,7 @@ public class MenuActivity extends AppCompatActivity {
                                 File renamedFile = new File(fileDir + File.separator, newName + ".mp4");
                                 if (file.renameTo(renamedFile)) {
                                     try {
+                                        getSharedPreferences("setting", MODE_PRIVATE).edit().putString("LATEST_RECORD_FILE", newName).apply();
                                         speak("녹음파일이 저장되었습니다.");
                                         Thread.sleep(1600);
                                         finish();
@@ -151,6 +152,7 @@ public class MenuActivity extends AppCompatActivity {
                             File renamedFile = new File(fileDir + File.separator, newName + ".mp4");
                             if (file.renameTo(renamedFile)) {
                                 try {
+                                    getSharedPreferences("setting", MODE_PRIVATE).edit().putString("LATEST_RECORD_FILE", newName).apply();
                                     speak("녹음파일이 저장되었습니다.");
                                     Thread.sleep(1600);
                                     finish();
