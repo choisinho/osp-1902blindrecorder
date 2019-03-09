@@ -75,10 +75,10 @@ public class FilesActivity extends AppCompatActivity {
             case KeyEvent.KEYCODE_DPAD_RIGHT:
                 clickDown();
                 return true;
-            case KeyEvent.KEYCODE_BUTTON_A:
+            case KeyEvent.KEYCODE_BUTTON_X:
                 clickVToggle();
                 return true;
-            case KeyEvent.KEYCODE_BUTTON_Y:
+            case KeyEvent.KEYCODE_BUTTON_B:
                 clickXToggle();
                 return true;
             default:
@@ -173,8 +173,7 @@ public class FilesActivity extends AppCompatActivity {
     }
 
     private void clickXToggle() {
-        startActivity(new Intent(FilesActivity.this, SearchActivity.class));
-        finish();
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void loadFiles() {

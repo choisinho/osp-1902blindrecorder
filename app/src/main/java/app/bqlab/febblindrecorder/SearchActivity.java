@@ -80,10 +80,10 @@ public class SearchActivity extends AppCompatActivity {
             case KeyEvent.KEYCODE_DPAD_RIGHT:
                 clickDown();
                 return true;
-            case KeyEvent.KEYCODE_BUTTON_A:
+            case KeyEvent.KEYCODE_BUTTON_X:
                 clickVToggle();
                 return true;
-            case KeyEvent.KEYCODE_BUTTON_Y:
+            case KeyEvent.KEYCODE_BUTTON_B:
                 clickXToggle();
                 return true;
             default:
