@@ -184,7 +184,7 @@ public class FilesActivity extends AppCompatActivity {
         } else {
             clicked = true;
             speak("한번 더 누르면 파일이 삭제됩니다.");
-            new CountDownTimer(3000, 1000) {
+            new CountDownTimer(6000, 1000) {
                 @Override
                 public void onTick(long millisUntilFinished) {
 
