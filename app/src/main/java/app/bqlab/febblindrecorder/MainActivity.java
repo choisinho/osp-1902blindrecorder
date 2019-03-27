@@ -39,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
     final int FOCUS_VOICE_MEMO = 0;             //음성 메모
     final int FOCUS_INSTANT_PLAY = 1;           //파일 바로 재생
     final int FOCUS_SEARCH_MEMO = 2;            //메모 찾기
-    final int FOCUS_USER_CHANGE = 3;            //사용자 변경
     final int FOCUS_APP_EXIT = 4;               //종료
     //variables
     String fileDir;
@@ -220,9 +219,6 @@ public class MainActivity extends AppCompatActivity {
                 checkDirectory();
                 startActivity(new Intent(MainActivity.this, SearchActivity.class));
                 stopPlaying();
-                break;
-            case FOCUS_USER_CHANGE:
-                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
                 break;
             case FOCUS_APP_EXIT:
                 shutupTTS();
