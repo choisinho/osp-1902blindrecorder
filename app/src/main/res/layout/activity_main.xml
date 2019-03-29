@@ -39,14 +39,14 @@
                 android:textStyle="bold" />
 
             <Button
-                android:id="@+id/main_body_play"
+                android:id="@+id/main_body_folder"
                 style="@style/Base.Widget.AppCompat.Button.Borderless"
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
                 android:layout_marginHorizontal="10dp"
                 android:layout_marginTop="10dp"
                 android:background="@drawable/app_button"
-                android:text="파일 바로 재생"
+                android:text="폴더 관리"
                 android:textColor="@color/colorWhite"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -65,14 +65,14 @@
                 android:textStyle="bold" />
 
             <Button
-                android:id="@+id/main_body_folder"
+                android:id="@+id/main_body_play"
                 style="@style/Base.Widget.AppCompat.Button.Borderless"
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
                 android:layout_marginHorizontal="10dp"
                 android:layout_marginTop="10dp"
                 android:background="@drawable/app_button"
-                android:text="폴더 관리"
+                android:text="파일 바로 재생"
                 android:textColor="@color/colorWhite"
                 android:textSize="16sp"
                 android:textStyle="bold" />

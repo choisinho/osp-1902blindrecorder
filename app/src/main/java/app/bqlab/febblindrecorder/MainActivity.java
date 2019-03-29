@@ -37,8 +37,9 @@ public class MainActivity extends AppCompatActivity {
 
     //constants
     final int FOCUS_VOICE_MEMO = 0;             //음성 메모
-    final int FOCUS_INSTANT_PLAY = 1;           //파일 바로 재생
+    final int FOCUS_FOLDER_MANAGE = 1;           //파일 바로 재생
     final int FOCUS_SEARCH_MEMO = 2;            //메모 찾기
+    final int FOCUS_INSTANT_PLAY = 3;           //파일 바로 재생
     final int FOCUS_APP_EXIT = 4;               //종료
     //variables
     String fileDir;
@@ -210,15 +211,21 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, RecordActivity.class));
                 stopPlaying();
                 break;
-            case FOCUS_INSTANT_PLAY:
+            case FOCUS_FOLDER_MANAGE:
+                shutupTTS();
                 checkDirectory();
-                playRecentFile();
+                startActivity(new Intent(MainActivity.this, FolderActivity.class));
+                stopPlaying();
                 break;
             case FOCUS_SEARCH_MEMO:
                 shutupTTS();
                 checkDirectory();
                 startActivity(new Intent(MainActivity.this, SearchActivity.class));
                 stopPlaying();
+                break;
+            case FOCUS_INSTANT_PLAY:
+                checkDirectory();
+                playRecentFile();
                 break;
             case FOCUS_APP_EXIT:
                 shutupTTS();
