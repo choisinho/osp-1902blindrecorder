@@ -24,12 +24,6 @@ import java.util.Locale;
 
 public class PlayActivity extends AppCompatActivity {
 
-    //constants
-    final int FOCUS_VOICE_MEMO = 0;     //음성 메모
-    final int FOCUS_INSTANT_PLAY = 1;   //파일 바로 재생
-    final int FOCUS_SEARCH_MEMO = 2;    //메모 찾기
-    final int FOCUS_USER_CHANGE = 3;    //사용자 변경
-    final int FOCUS_APP_EXIT = 4;       //종료
     //variables
     int soundDisable;
     boolean playing, speaking;

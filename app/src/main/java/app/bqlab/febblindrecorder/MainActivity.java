@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
     //constants
     final int FOCUS_VOICE_MEMO = 0;             //음성 메모
-    final int FOCUS_FOLDER_MANAGE = 1;           //파일 바로 재생
+    final int FOCUS_FOLDER_MANAGE = 1;          //파일 관리
     final int FOCUS_SEARCH_MEMO = 2;            //메모 찾기
     final int FOCUS_INSTANT_PLAY = 3;           //파일 바로 재생
     final int FOCUS_APP_EXIT = 4;               //종료
