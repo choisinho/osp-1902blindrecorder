@@ -21,6 +21,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public class SearchActivity extends AppCompatActivity {
 
@@ -189,10 +190,14 @@ public class SearchActivity extends AppCompatActivity {
                 requestSpeech();
                 break;
             case SEARCY_BY_LIST:
-                if (new File(fileDir).list().length != 0)
-                    startActivity(new Intent(SearchActivity.this, FilesActivity.class));
-                else
-                    speak("저장된 파일이 없습니다.");
+                if (!Objects.equals(getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", ""), "")) {
+                    if (new File(fileDir + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "")).list().length != 0)
+                        startActivity(new Intent(SearchActivity.this, FilesActivity.class));
+                    else
+                        speak("저장된 파일이 없습니다.");
+                } else
+                    speak("폴더를 설정하지 않았습니다.");
+
                 break;
         }
     }

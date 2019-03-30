@@ -16,13 +16,14 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
-import java.util.Timer;
 
-public class FilesActivity extends AppCompatActivity {
+public class FoldersActivity extends AppCompatActivity {
 
     //variables
     boolean clicked;
@@ -39,10 +40,10 @@ public class FilesActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_files);
+        setContentView(R.layout.activity_folders);
         init();
         setupTTS();
-        loadFiles();
+        loadFolders();
         resetFocus();
         setupSoundPool();
     }
@@ -95,7 +96,7 @@ public class FilesActivity extends AppCompatActivity {
         //initialize
         filesBody = findViewById(R.id.files_body);
         filesBodyLayouts = new ArrayList<FileLayout>();
-        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator +getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
+        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
         //setup
         findViewById(R.id.files_bot_up).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -156,19 +157,17 @@ public class FilesActivity extends AppCompatActivity {
     }
 
     private void clickLeft() {
-        startActivity(new Intent(FilesActivity.this, SearchActivity.class));
+        startActivity(new Intent(FoldersActivity.this, FolderActivity.class));
         finish();
     }
 
     private void clickRight() {
         String fileName = fileNames[focus];
         if (new File(fileDir, fileName).exists()) {
-            Intent i = new Intent(FilesActivity.this, PlayActivity.class);
-            i.putExtra("fileName", fileName);
-            i.putExtra("flag", "list");
-            startActivity(i);
+            getSharedPreferences("setting",MODE_PRIVATE).edit().putString("SAVE_FOLDER_NAME", fileName).apply();
+            speak("폴더가 변경되었습니다.");
         } else {
-            loadFiles();
+            loadFolders();
         }
     }
 
@@ -181,12 +180,12 @@ public class FilesActivity extends AppCompatActivity {
             //두번째 클릭
             File file = new File(fileDir, fileNames[focus]);
             boolean success = file.delete();
-            loadFiles();
+            loadFolders();
             resetFocus();
         } else {
             //첫번째 클릭
             clicked = true;
-            speak("한번 더 누르면 파일이 삭제됩니다.");
+            speak("한번 더 누르면 폴더가 삭제됩니다.");
             new CountDownTimer(6000, 1000) { //딜레이 동안 한번 더 토글 클릭 입력시 파일 삭제
                 @Override
                 public void onTick(long millisUntilFinished) {
@@ -201,7 +200,7 @@ public class FilesActivity extends AppCompatActivity {
         }
     }
 
-    private void loadFiles() {
+    private void loadFolders() {
         if (new File(fileDir).list().length == 0) {
             startActivity(new Intent(this, MainActivity.class));
             speak("저장된 파일이 없습니다.");
@@ -253,11 +252,11 @@ public class FilesActivity extends AppCompatActivity {
                 if (status == TextToSpeech.SUCCESS) {
                     int result = mTTS.setLanguage(Locale.KOREA);
                     if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        Toast.makeText(FilesActivity.this, "지원하지 않는 서비스입니다.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(FoldersActivity.this, "지원하지 않는 서비스입니다.", Toast.LENGTH_LONG).show();
                         finishAffinity();
                     }
                 } else {
-                    Toast.makeText(FilesActivity.this, "지원하지 않는 서비스입니다.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(FoldersActivity.this, "지원하지 않는 서비스입니다.", Toast.LENGTH_LONG).show();
                     finishAffinity();
                 }
             }
@@ -281,7 +280,7 @@ public class FilesActivity extends AppCompatActivity {
             public void run() {
                 try {
                     Thread.sleep(500);
-                    speak("파일목록");
+                    speak("폴더목록");
                     Thread.sleep(1500);
                     speakFocus();
                 } catch (InterruptedException e) {
@@ -292,7 +291,20 @@ public class FilesActivity extends AppCompatActivity {
     }
 
     private void speakFocus() {
-        final Button button = filesBodyLayouts.get(focus).getButton();
-        speak(String.valueOf(focus + 1) + "번파일 " + button.getText().toString().replace(".mp4", ""));
+        String fileName = filesBodyLayouts.get(focus).getButton().getText().toString();
+        long lastModified = new File(fileDir, fileName).lastModified();
+        Date lastModifiedTime = new Date();
+        lastModifiedTime.setTime(lastModified);
+        String lastModifiedDay = new SimpleDateFormat("yyyy년 MM월 dd일", Locale.KOREA).format(lastModifiedTime);
+        String currentYear = new SimpleDateFormat("yyyy", Locale.KOREA).format(Calendar.getInstance().getTime());
+        if (new SimpleDateFormat("yyyy", Locale.KOREA).format(lastModifiedTime).equals(currentYear))
+            lastModifiedDay = lastModifiedDay.replace(currentYear+"년", "");
+        try {
+            speak(lastModifiedDay);
+            Thread.sleep(2500);
+            speak(fileName);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -29,6 +29,7 @@ public class FolderActivity extends AppCompatActivity {
     final int SPEECH_TO_TEXT = 1000;
     //variables
     int focus, soundMenuEnd, soundDisable;
+    String fileDir;
     ArrayList<String> speech;
     //objects
     TextToSpeech mTTS;
@@ -118,6 +119,7 @@ public class FolderActivity extends AppCompatActivity {
         //initialize
         folderBody = findViewById(R.id.folder_body);
         folderBodyButtons = new ArrayList<>();
+        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
         for (int i = 0; i < folderBody.getChildCount(); i++)
             folderBodyButtons.add(folderBody.getChildAt(i));
         //setting
@@ -190,6 +192,10 @@ public class FolderActivity extends AppCompatActivity {
                 requestSpeech();
                 break;
             case FOLDER_CHANGE:
+                if (new File(fileDir).list().length != 0)
+                    startActivity(new Intent(this, FoldersActivity.class));
+                else
+                    speak("생성된 폴더가 없습니다.");
                 break;
         }
     }
@@ -287,7 +293,7 @@ public class FolderActivity extends AppCompatActivity {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.KOREA);
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "파일명을 말하세요.");
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "생성할 폴더명을 말씀해주세요");
         startActivityForResult(intent, SPEECH_TO_TEXT);
     }
 }
