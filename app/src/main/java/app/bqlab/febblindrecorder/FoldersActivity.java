@@ -291,7 +291,7 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void speakFocus() {
-        String fileName = filesBodyLayouts.get(focus).getButton().getText().toString();
+        final String fileName = filesBodyLayouts.get(focus).getButton().getText().toString();
         long lastModified = new File(fileDir, fileName).lastModified();
         Date lastModifiedTime = new Date();
         lastModifiedTime.setTime(lastModified);
@@ -299,12 +299,18 @@ public class FoldersActivity extends AppCompatActivity {
         String currentYear = new SimpleDateFormat("yyyy", Locale.KOREA).format(Calendar.getInstance().getTime());
         if (new SimpleDateFormat("yyyy", Locale.KOREA).format(lastModifiedTime).equals(currentYear))
             lastModifiedDay = lastModifiedDay.replace(currentYear+"년", "");
-        try {
-            speak(lastModifiedDay);
-            Thread.sleep(2500);
-            speak(fileName);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        final String finalLastModifiedDay = lastModifiedDay;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    speak(finalLastModifiedDay);
+                    Thread.sleep(2500);
+                    speak(fileName);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 }
