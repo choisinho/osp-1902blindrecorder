@@ -287,7 +287,7 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void checkEnterOption() {
-        if (Objects.equals(getIntent().getStringExtra("enterOption"), "folders")) {
+        if (getIntent().getStringExtra("enterOption")!=null) {
             saveFile();
         }
     }

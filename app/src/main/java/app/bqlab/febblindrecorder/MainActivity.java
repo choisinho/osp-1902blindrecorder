@@ -377,11 +377,11 @@ public class MainActivity extends AppCompatActivity {
     private void stopRecentPlaying() {
         //최근 파일 재생 중지
         try {
-            mPlayer.stop();
-            mPlayer.release();
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-        } catch (IllegalStateException e) {
+            if (mPlayer.isPlaying()) {
+                mPlayer.stop();
+                mPlayer.release();
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

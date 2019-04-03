@@ -187,7 +187,7 @@ public class RecordActivity extends AppCompatActivity {
             try {
                 shutupTTS();
                 mSoundPool.play(soundStartEnd, 1, 1, 0, 0, 1);
-                Thread.sleep(1000);
+                Thread.sleep(500);
                 startRecording();
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -195,7 +195,7 @@ public class RecordActivity extends AppCompatActivity {
         } else {
             try {
                 stopRecording();
-                Thread.sleep(1000);
+                Thread.sleep(500);
                 mSoundPool.play(soundStartEnd, 1, 1, 0, 0, 1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -371,9 +371,9 @@ public class RecordActivity extends AppCompatActivity {
     private void checkResumedFile() {
         //이어서 녹음 버튼을 클릭했을 시 소스파일을 인식해야 함
         //작업과정: 녹화시작 -> 녹화종료 -> 1592..로 된 소스파일 생성 -> @토글클릭 -> 소스파일 모두 병합 -> 메뉴화면으로 이동(소스파일명 전달됨) -> 이어서 녹음
-        String resumedFile = getIntent().getStringExtra("fileName"); //이 파일이 이어서 녹음될 소스파일(병합된 소스파일)
+        String resumedFile = getIntent().getStringExtra("filePath"); //이 파일이 이어서 녹음될 소스파일(병합된 소스파일)
         if (resumedFile != null) {
-            sourcePathes.add(fileDir + File.separator + resumedFile); //병합될 파일 리스트(만약 @토글을 클릭시 이 리스트 속 모든 파일은 다시 병합됨)
+            sourcePathes.add(resumedFile); //병합될 파일 리스트(만약 @토글을 클릭시 이 리스트 속 모든 파일은 다시 병합됨)
             new Thread(new Runnable() {
                 @Override
                 public void run() {

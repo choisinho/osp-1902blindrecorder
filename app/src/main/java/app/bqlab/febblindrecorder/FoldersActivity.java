@@ -21,6 +21,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public class FoldersActivity extends AppCompatActivity {
 
@@ -41,22 +42,16 @@ public class FoldersActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_folders);
         init();
-        setupTTS();
         loadFolders();
         resetFocus();
         setupSoundPool();
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onResumeFragments() {
+        super.onResumeFragments();
+        setupTTS();
         speakFirst();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        shutupTTS();
     }
 
     @Override
@@ -156,13 +151,14 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void clickLeft() {
-        if (getIntent().getStringExtra("filePath")!=null) {
+        if (getIntent().getStringExtra("filePath") != null) {
             Intent i = new Intent(this, MenuActivity.class);
             i.putExtra("filePath", getIntent().getStringExtra("filePath"));
             i.putExtra("enterOption", "folders");
             startActivity(i);
+            finish();
         } else {
-            startActivity(new Intent(FoldersActivity.this, FolderActivity.class));
+            startActivity(new Intent(this, MenuActivity.class));
             finish();
         }
     }
@@ -174,9 +170,9 @@ public class FoldersActivity extends AppCompatActivity {
     private void clickVToggle() {
         String folderName = folderNames[focus];
         if (new File(folderDir, folderName).exists()) {
-            getSharedPreferences("setting",MODE_PRIVATE).edit().putString("SAVE_FOLDER_NAME", folderName).apply();
+            getSharedPreferences("setting", MODE_PRIVATE).edit().putString("SAVE_FOLDER_NAME", folderName).apply();
             speak("폴더가 변경되었습니다.");
-            if (getIntent().getStringExtra("filePath")!=null) {
+            if (getIntent().getStringExtra("filePath") != null) {
                 Intent i = new Intent(this, MenuActivity.class);
                 i.putExtra("filePath", getIntent().getStringExtra("filePath"));
                 i.putExtra("enterOption", "folders");
@@ -295,6 +291,7 @@ public class FoldersActivity extends AppCompatActivity {
                     speak("폴더목록");
                     Thread.sleep(1500);
                     speakFocus();
+                    Thread.sleep(1500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -310,7 +307,7 @@ public class FoldersActivity extends AppCompatActivity {
         String lastModifiedDay = new SimpleDateFormat("yyyy년 MM월 dd일", Locale.KOREA).format(lastModifiedTime);
         String currentYear = new SimpleDateFormat("yyyy", Locale.KOREA).format(Calendar.getInstance().getTime());
         if (new SimpleDateFormat("yyyy", Locale.KOREA).format(lastModifiedTime).equals(currentYear))
-            lastModifiedDay = lastModifiedDay.replace(currentYear+"년", "");
+            lastModifiedDay = lastModifiedDay.replace(currentYear + "년", "");
         final String finalLastModifiedDay = lastModifiedDay;
         new Thread(new Runnable() {
             @Override
