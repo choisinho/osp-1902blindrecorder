@@ -8,6 +8,7 @@ import android.os.CountDownTimer;
 import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -160,17 +161,22 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void clickRight() {
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+    }
+
+    private void clickVToggle() {
         String folderName = folderNames[focus];
         if (new File(folderDir, folderName).exists()) {
             getSharedPreferences("setting",MODE_PRIVATE).edit().putString("SAVE_FOLDER_NAME", folderName).apply();
             speak("폴더가 변경되었습니다.");
+            if (getIntent().getStringExtra("filePath")!=null) {
+                Intent i = new Intent(this, MenuActivity.class);
+                i.putExtra("filePath", getIntent().getStringExtra("filePath"));
+                startActivity(i);
+            }
         } else {
             loadFolders();
         }
-    }
-
-    private void clickVToggle() {
-        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickXToggle() {

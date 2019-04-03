@@ -7,10 +7,12 @@ import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
+import android.renderscript.ScriptGroup;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
@@ -30,10 +32,11 @@ public class MenuActivity extends AppCompatActivity {
     final int RE_RECORD = 2;          //재 녹음
     final int RETURN_MAIN = 3;        //메뉴로 돌아가기
     final int SPEECH_TO_TEXT = 1000;  //STT 데이터 요청
+    final String TAG = "MenuActivity";
     //variables
     int focus, soundMenuEnd, soundDisable;
     boolean allowedExit, timerStart;
-    String fileName, fileDir;
+    String fileName, fileDir, filePath;
     List<String> speech;
     //objects
     TextToSpeech mTTS;
@@ -107,10 +110,10 @@ public class MenuActivity extends AppCompatActivity {
                             String newName = speech.get(0);
                             File file = new File(fileDir, fileName);
                             if (file.exists()) {
-                                File renamedFile = new File(fileDir + File.separator, newName + ".mp4");
+                                File renamedFile = new File(fileDir, newName + ".mp4");
                                 if (file.renameTo(renamedFile)) {
                                     try {
-                                        getSharedPreferences("setting", MODE_PRIVATE).edit().putString("LATEST_RECORD_FILE", newName).apply();
+                                        getSharedPreferences("setting", MODE_PRIVATE).edit().putString("LATEST_RECORD_FILE", renamedFile.getPath()).apply();
                                         speak("녹음파일이 저장되었습니다.");
                                         Thread.sleep(1600);
                                         finish();
@@ -152,7 +155,7 @@ public class MenuActivity extends AppCompatActivity {
                         String newName = "이름없음" + String.valueOf(last + 1); //가장 마지막 숫자보다 1 더 큰 숫자를 끝에 추가
                         File file = new File(fileDir, fileName);
                         if (file.exists()) {
-                            File renamedFile = new File(fileDir + File.separator, newName + ".mp4");
+                            File renamedFile = new File(fileDir, newName + ".mp4");
                             if (file.renameTo(renamedFile)) {
                                 try {
                                     getSharedPreferences("setting", MODE_PRIVATE).edit().putString("LATEST_RECORD_FILE", newName).apply();
@@ -183,8 +186,9 @@ public class MenuActivity extends AppCompatActivity {
         //initialization
         menuBody = findViewById(R.id.menu_body);
         menuBodyButtons = new ArrayList<View>();
-        fileName = getIntent().getStringExtra("fileName");
-        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
+        filePath = getIntent().getStringExtra("filePath");
+        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
+        fileName = filePath.replace(fileDir + File.separator, "");
         //setting
         for (int i = 0; i < menuBody.getChildCount(); i++)
             menuBodyButtons.add(menuBody.getChildAt(i));
@@ -248,43 +252,54 @@ public class MenuActivity extends AppCompatActivity {
 
     private void clickLeft() {
         Intent i = new Intent(MenuActivity.this, RecordActivity.class);
-        i.putExtra("fileName", fileName);
+        i.putExtra("filePath", filePath);
         startActivity(i);
         finish();
     }
 
     private void clickRight() {
-        if (timerStart)
-            startActivity(new Intent(this, FoldersActivity.class));
-        else
+        if (timerStart) {
+            allowedExit = true;
+            Intent i = new Intent(this, FoldersActivity.class);
+            i.putExtra("filePath", filePath);
+            startActivity(i);
+            finish();
+        } else
             mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickVToggle() {
         switch (focus) {
             case FILE_SAVE:
+                mTTS.stop();
                 String folderName = getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
-                String speak = "현재 폴더" + folderName + "변경하시려면 오른쪽 키 입력";
-                speak(speak);
-                if (!timerStart)
-                    timerStart = true;
-                new CountDownTimer(3000, 1000) {
-                    @Override
-                    public void onTick(long millisUntilFinished) {
+                try {
+                    speak("현재 폴더" + folderName);
+                    Thread.sleep(2000);
+                    speak("변경하시려면 오른쪽 키 입력");
+                    Thread.sleep(1000);
+                    if (!timerStart)
+                        timerStart = true;
+                    new CountDownTimer(3000, 1000) {
+                        @Override
+                        public void onTick(long millisUntilFinished) {
 
-                    }
+                        }
 
-                    @Override
-                    public void onFinish() {
-                        timerStart = false;
-                        requestSpeech();
-                    }
-                };
+                        @Override
+                        public void onFinish() {
+                            timerStart = false;
+                            requestSpeech();
+                        }
+                    }.start();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 break;
             case RESUME_RECORD:
                 allowedExit = true; //alowedExit는 소스파일을 삭제할지 말지를 결정하는 플래그, 이 경우는 소스파일을 삭제하지 않고 이어 녹음함
                 Intent i = new Intent(MenuActivity.this, RecordActivity.class);
-                i.putExtra("fileName", fileName);
+                i.putExtra("filePath", filePath);
                 startActivity(i);
                 finish();
                 break;

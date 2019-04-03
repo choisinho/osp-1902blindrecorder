@@ -236,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean isDirectoryAllRight() {
-        fileDir = Environment.getExternalStorageDirectory() + File.separator + "음성메모장";
+        fileDir = Environment.getExternalStorageDirectory() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
         mFile = new File(fileDir);
         boolean success;
         if (!mFile.exists())
@@ -333,33 +333,27 @@ public class MainActivity extends AppCompatActivity {
 
     private void playRecentFile() {
         loadFiles(); //파일 리스트 동기화
-        String filePath = null; //파일 경로 선언
-        final String latestFile = getSharedPreferences("setting", MODE_PRIVATE).getString("LATEST_RECORD_FILE", ""); //최근 파일 이름 불러오기
-        for (String path : filePathes) {
-            assert latestFile != null;
-            if (path.contains(latestFile)) {
-                filePath = path; //최근 파일에 해당하는 파일 찾기
-            }
-        }
-        if (filePath == null) {
+        String latestFilePath = getSharedPreferences("setting", MODE_PRIVATE).getString("LATEST_RECORD_FILE", "");
+        File latestFile = new File(latestFilePath);
+        if (Objects.equals(latestFilePath, "")) {
             speak("최근 저장한 파일을 찾을 수 없습니다.");
         } else {
             try {
                 //최근파일 재생
                 speak("최근저장메모");
                 Thread.sleep(1000);
-                speak(latestFile);
+                speak(latestFile.getName());
                 Thread.sleep(3000);
                 if (!playing) {
                     mRecorder = new MediaRecorder();
                     mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
                     mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-                    mRecorder.setOutputFile(filePath);
+                    mRecorder.setOutputFile(latestFilePath);
                     mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
                     playing = true;
                     try {
                         mPlayer = new MediaPlayer();
-                        mPlayer.setDataSource(filePath);
+                        mPlayer.setDataSource(latestFilePath);
                         mPlayer.prepare();
                         mPlayer.start();
                         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {

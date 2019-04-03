@@ -98,12 +98,20 @@ public class SearchActivity extends AppCompatActivity {
                         case SEARCH_BY_NAME:
                             shutupTTS();
                             String fileName = speech.get(0) + ".mp4";
-                            if (new File(fileDir, fileName).exists()) {
+                            File file = new File(fileDir, fileName);
+                            if (file.exists()) {
                                 Intent i = new Intent(this, PlayActivity.class);
-                                i.putExtra("fileName", fileName);
+                                i.putExtra("filePath", file.getPath());
                                 i.putExtra("flag", "name");
                                 i.putExtra("searchResult", "파일찾기성공"); //PlayActivity로 이동할 때 성공 여부를 전달함
                                 startActivity(i);
+                            } else {
+                                try {
+                                    speak("파일을 찾지 못했습니다.");
+                                    Thread.sleep(1500);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
                             }
                             break;
                     }
@@ -116,7 +124,7 @@ public class SearchActivity extends AppCompatActivity {
         //initialize
         searchBody = findViewById(R.id.search_body);
         searchBodyButtons = new ArrayList<View>();
-        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
+        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
         //setup
         for (int i = 0; i < searchBody.getChildCount(); i++)
             searchBodyButtons.add(searchBody.getChildAt(i));
@@ -190,14 +198,10 @@ public class SearchActivity extends AppCompatActivity {
                 requestSpeech();
                 break;
             case SEARCY_BY_LIST:
-                if (!Objects.equals(getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", ""), "")) {
-                    if (new File(fileDir + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "")).list().length != 0)
-                        startActivity(new Intent(SearchActivity.this, FilesActivity.class));
-                    else
-                        speak("저장된 파일이 없습니다.");
-                } else
-                    speak("폴더를 설정하지 않았습니다.");
-
+                if (new File(fileDir).list().length != 0)
+                    startActivity(new Intent(SearchActivity.this, FilesActivity.class));
+                else
+                    speak("저장된 파일이 없습니다.");
                 break;
         }
     }

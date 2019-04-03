@@ -125,7 +125,7 @@ public class RecordActivity extends AppCompatActivity {
     private void init() {
         //initialize
         sourcePathes = new ArrayList<>();
-        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
+        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
         //setup
         findViewById(R.id.record_bot_up).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -199,9 +199,8 @@ public class RecordActivity extends AppCompatActivity {
             //소스 파일 병합
             mergeAudioFiles(sourcePathes, targetPath);
             cleanupSources();
-            //파일명, 소스 파일 리스트 전달
             Intent i = new Intent(RecordActivity.this, MenuActivity.class);
-            i.putExtra("fileName", targetName);
+            i.putExtra("filePath", targetPath);
             startActivity(i);
             finish();
         } else {
