@@ -97,8 +97,9 @@ public class FolderActivity extends AppCompatActivity {
                             String filreDir = Environment.getExternalStorageDirectory() + File.separator + "음성메모장" + File.separator + speech.get(0);
                             File newFile = new File(filreDir);
                             boolean success;
-                            if (newFile.exists())
-                                Toast.makeText(FolderActivity.this, "이미 폴더가 존재합니다.", Toast.LENGTH_LONG).show();
+                            if (newFile.exists()) {
+                                speak("이미 폴더가 존재합니다.");
+                            }
                             else {
                                 try {
                                     success = newFile.mkdir();
