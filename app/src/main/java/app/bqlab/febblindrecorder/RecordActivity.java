@@ -184,22 +184,11 @@ public class RecordActivity extends AppCompatActivity {
 
     private void clickVToggle() {
         if (!recording) {
-            try {
-                shutupTTS();
-                mSoundPool.play(soundStartEnd, 1, 1, 0, 0, 1);
-                Thread.sleep(500);
-                startRecording();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            mSoundPool.play(soundStartEnd, 1, 1, 0, 0, 1);
+            startRecording();
         } else {
-            try {
-                stopRecording();
-                Thread.sleep(500);
-                mSoundPool.play(soundStartEnd, 1, 1, 0, 0, 1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            stopRecording();
+            mSoundPool.play(soundStartEnd, 1, 1, 0, 0, 1);
         }
     }
 
@@ -229,6 +218,8 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
+        //음성안내 중지
+        shutupTTS();
         //레이아웃 세팅
         ((Button) findViewById(R.id.record_body_start)).setText("녹음중지");
         //파일 경로 세팅

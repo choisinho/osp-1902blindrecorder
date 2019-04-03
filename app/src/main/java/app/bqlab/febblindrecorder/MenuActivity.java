@@ -36,7 +36,7 @@ public class MenuActivity extends AppCompatActivity {
     final String TAG = "MenuActivity";
     //variables
     int focus, soundMenuEnd, soundDisable;
-    boolean allowedExit, timerStart;
+    boolean allowedExit, timerStart, foldersToHere;
     String fileName, fileDir, filePath;
     List<String> speech;
     //objects
@@ -50,6 +50,7 @@ public class MenuActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
+        checkEnterOption();
         init();
         resetFocus();
         setupSoundPool();
@@ -60,7 +61,6 @@ public class MenuActivity extends AppCompatActivity {
         super.onResume();
         setupTTS();
         speakFirst();
-        checkEnterOption();
     }
 
     @Override
@@ -142,7 +142,43 @@ public class MenuActivity extends AppCompatActivity {
             if (requestCode == SPEECH_TO_TEXT) {
                 switch (focus) {
                     case FILE_SAVE:
-                        saveFile();
+                        int last = 0;
+                        //사용자가 정확한 발음으로 음성입력하지 않았을 경우 이름은 이름없음N과 같은 형태로 지정되도록 설정
+                        for (File file : new File(fileDir).listFiles()) {
+                            if (file.getName().contains("이름없음")) {
+                                String s1 = file.getName().replace("이름없음", "");
+                                String s2 = s1.replace(".mp4", "");
+                                int temp = Integer.parseInt(s2);
+                                if (last < temp)
+                                    last = temp;
+                                //가장 마지막 숫자를 검색
+                            }
+                        }
+                        String newName = "이름없음" + String.valueOf(last + 1); //가장 마지막 숫자보다 1 더 큰 숫자를 끝에 추가
+                        File file = new File(fileDir, fileName);
+                        if (file.exists()) {
+                            File renamedFile = new File(fileDir, newName + ".mp4");
+                            if (file.renameTo(renamedFile)) {
+                                try {
+                                    getSharedPreferences("setting", MODE_PRIVATE).edit().putString("LATEST_RECORD_FILE", newName).apply();
+                                    speak("녹음파일이 저장되었습니다.");
+                                    Thread.sleep(1600);
+                                    finish();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                    finish();
+                                }
+                            }
+                        } else {
+                            try {
+                                speak("녹음파일이 삭제되었거나 임의로 수정되었습니다.");
+                                Thread.sleep(2000);
+                                finish();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                                finish();
+                            }
+                        }
                         break;
                 }
             }
@@ -153,9 +189,6 @@ public class MenuActivity extends AppCompatActivity {
         //initialization
         menuBody = findViewById(R.id.menu_body);
         menuBodyButtons = new ArrayList<View>();
-        filePath = getIntent().getStringExtra("filePath");
-        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
-        fileName = filePath.replace(fileDir + File.separator, "");
         //setting
         for (int i = 0; i < menuBody.getChildCount(); i++)
             menuBodyButtons.add(menuBody.getChildAt(i));
@@ -287,48 +320,19 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void checkEnterOption() {
-        if (getIntent().getStringExtra("enterOption")!=null) {
-            saveFile();
-        }
-    }
-
-    private void saveFile() {
-        int last = 0;
-        //사용자가 정확한 발음으로 음성입력하지 않았을 경우 이름은 이름없음N과 같은 형태로 지정되도록 설정
-        for (File file : new File(fileDir).listFiles()) {
-            if (file.getName().contains("이름없음")) {
-                String s1 = file.getName().replace("이름없음", "");
-                String s2 = s1.replace(".mp4", "");
-                int temp = Integer.parseInt(s2);
-                if (last < temp)
-                    last = temp;
-                //가장 마지막 숫자를 검색
+        try {
+            filePath = getIntent().getStringExtra("filePath");
+            if (filePath.contains("@folders")) {
+                foldersToHere = true;
+                filePath = filePath.replace("@folders", "");
+                fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
+                fileName = filePath.replace(fileDir + File.separator, "");
+            } else {
+                fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
+                fileName = filePath.replace(fileDir + File.separator, "");
             }
-        }
-        String newName = "이름없음" + String.valueOf(last + 1); //가장 마지막 숫자보다 1 더 큰 숫자를 끝에 추가
-        File file = new File(fileDir, fileName);
-        if (file.exists()) {
-            File renamedFile = new File(fileDir, newName + ".mp4");
-            if (file.renameTo(renamedFile)) {
-                try {
-                    getSharedPreferences("setting", MODE_PRIVATE).edit().putString("LATEST_RECORD_FILE", newName).apply();
-                    speak("녹음파일이 저장되었습니다.");
-                    Thread.sleep(1600);
-                    finish();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    finish();
-                }
-            }
-        } else {
-            try {
-                speak("녹음파일이 삭제되었거나 임의로 수정되었습니다.");
-                Thread.sleep(2000);
-                finish();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                finish();
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -395,6 +399,11 @@ public class MenuActivity extends AppCompatActivity {
                     speak("녹음메뉴");
                     Thread.sleep(1500);
                     speakFocus();
+                    if (foldersToHere) {
+                        Thread.sleep(1500);
+                        requestSpeech();
+                        Thread.sleep(3000);
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

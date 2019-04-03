@@ -25,6 +25,8 @@ import java.util.Objects;
 
 public class FoldersActivity extends AppCompatActivity {
 
+    //constants
+    final String TAG = "FoldersActivity";
     //variables
     boolean clicked;
     int focus, soundMenuEnd, soundDisable;
@@ -48,8 +50,8 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResumeFragments() {
-        super.onResumeFragments();
+    protected void onStart() {
+        super.onStart();
         setupTTS();
         speakFirst();
     }
@@ -90,7 +92,7 @@ public class FoldersActivity extends AppCompatActivity {
         //initialize
         foldersBody = findViewById(R.id.folders_body);
         foldersBodyLayouts = new ArrayList<>();
-        folderDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
+        folderDir = Environment.getExternalStorageDirectory() + File.separator + "음성메모장";
         //setup
         findViewById(R.id.folders_bot_up).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -153,12 +155,11 @@ public class FoldersActivity extends AppCompatActivity {
     private void clickLeft() {
         if (getIntent().getStringExtra("filePath") != null) {
             Intent i = new Intent(this, MenuActivity.class);
-            i.putExtra("filePath", getIntent().getStringExtra("filePath"));
-            i.putExtra("enterOption", "folders");
+            i.putExtra("filePath", getIntent().getStringExtra("filePath" ) + "@folders");
             startActivity(i);
             finish();
         } else {
-            startActivity(new Intent(this, MenuActivity.class));
+            startActivity(new Intent(this, FolderActivity.class));
             finish();
         }
     }
@@ -174,8 +175,7 @@ public class FoldersActivity extends AppCompatActivity {
             speak("폴더가 변경되었습니다.");
             if (getIntent().getStringExtra("filePath") != null) {
                 Intent i = new Intent(this, MenuActivity.class);
-                i.putExtra("filePath", getIntent().getStringExtra("filePath"));
-                i.putExtra("enterOption", "folders");
+                i.putExtra("filePath", getIntent().getStringExtra("filePath") + "@folders");
                 startActivity(i);
             }
         } else {
@@ -209,21 +209,16 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void loadFolders() {
-        if (new File(folderDir).list().length == 0) {
-            startActivity(new Intent(this, MainActivity.class));
-            speak("저장된 파일이 없습니다.");
-        } else {
-            //파일을 커스텀 레이아웃인 FileLayout으로 치환하여 뷰그룹에 추가(파일 리스트->레이아웃 그룹으로 변환 정도로 이해하면 쉽습니다)
-            foldersBody.removeAllViews();
-            File dir = new File(folderDir);
-            folderNames = dir.list();
-            foldersBodyLayouts = new ArrayList<>();
-            if (folderNames.length != 0) {
-                for (int i = 0; i < folderNames.length; i++) {
-                    FileLayout fileLayout = new FileLayout(this, String.valueOf(i + 1), folderNames[i]);
-                    foldersBodyLayouts.add(fileLayout);
-                    foldersBody.addView(fileLayout);
-                }
+        //파일을 커스텀 레이아웃인 FileLayout으로 치환하여 뷰그룹에 추가(파일 리스트->레이아웃 그룹으로 변환 정도로 이해하면 쉽습니다)
+        foldersBody.removeAllViews();
+        File dir = new File(folderDir);
+        folderNames = dir.list();
+        foldersBodyLayouts = new ArrayList<>();
+        if (folderNames.length != 0) {
+            for (int i = 0; i < folderNames.length; i++) {
+                FileLayout fileLayout = new FileLayout(this, String.valueOf(i + 1), folderNames[i]);
+                foldersBodyLayouts.add(fileLayout);
+                foldersBody.addView(fileLayout);
             }
         }
     }
@@ -291,7 +286,6 @@ public class FoldersActivity extends AppCompatActivity {
                     speak("폴더목록");
                     Thread.sleep(1500);
                     speakFocus();
-                    Thread.sleep(1500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
