@@ -8,7 +8,6 @@ import android.os.CountDownTimer;
 import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
@@ -19,8 +18,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
-import java.util.Timer;
 
 public class FilesActivity extends AppCompatActivity {
 
@@ -93,7 +90,7 @@ public class FilesActivity extends AppCompatActivity {
 
     private void init() {
         //initialize
-        filesBody = findViewById(R.id.files_body);
+        filesBody = findViewById(R.id.folders_body);
         filesBodyLayouts = new ArrayList<FileLayout>();
         fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator +getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
         //setup

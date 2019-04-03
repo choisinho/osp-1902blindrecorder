@@ -206,10 +206,14 @@ public class MainActivity extends AppCompatActivity {
     private void clickRight() {
         switch (focus) {
             case FOCUS_VOICE_MEMO:
-                shutupTTS();
-                checkDirectory();
-                startActivity(new Intent(MainActivity.this, RecordActivity.class));
-                stopPlaying();
+                if (Objects.equals(getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", ""), "")) {
+                    speak("폴더를 설정하지 않았습니다.");
+                } else {
+                    shutupTTS();
+                    checkDirectory();
+                    startActivity(new Intent(MainActivity.this, RecordActivity.class));
+                    stopPlaying();
+                }
                 break;
             case FOCUS_FOLDER_MANAGE:
                 shutupTTS();
@@ -218,14 +222,22 @@ public class MainActivity extends AppCompatActivity {
                 stopPlaying();
                 break;
             case FOCUS_SEARCH_MEMO:
-                shutupTTS();
-                checkDirectory();
-                startActivity(new Intent(MainActivity.this, SearchActivity.class));
-                stopPlaying();
+                if (Objects.equals(getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", ""), "")) {
+                    speak("폴더를 설정하지 않았습니다.");
+                } else {
+                    shutupTTS();
+                    checkDirectory();
+                    startActivity(new Intent(MainActivity.this, SearchActivity.class));
+                    stopPlaying();
+                }
                 break;
             case FOCUS_INSTANT_PLAY:
-                checkDirectory();
-                playRecentFile();
+                if (Objects.equals(getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", ""), "")) {
+                    speak("폴더를 설정하지 않았습니다.");
+                } else {
+                    checkDirectory();
+                    playRecentFile();
+                }
                 break;
             case FOCUS_APP_EXIT:
                 shutupTTS();

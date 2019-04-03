@@ -1,18 +1,16 @@
 package app.bqlab.febblindrecorder;
 
 import android.app.Activity;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
@@ -34,7 +32,7 @@ public class MenuActivity extends AppCompatActivity {
     final int SPEECH_TO_TEXT = 1000;  //STT 데이터 요청
     //variables
     int focus, soundMenuEnd, soundDisable;
-    boolean allowedExit;
+    boolean allowedExit, timerStart;
     String fileName, fileDir;
     List<String> speech;
     //objects
@@ -151,7 +149,7 @@ public class MenuActivity extends AppCompatActivity {
                                 //가장 마지막 숫자를 검색
                             }
                         }
-                        String newName = "이름없음" + String.valueOf(last+1); //가장 마지막 숫자보다 1 더 큰 숫자를 끝에 추가
+                        String newName = "이름없음" + String.valueOf(last + 1); //가장 마지막 숫자보다 1 더 큰 숫자를 끝에 추가
                         File file = new File(fileDir, fileName);
                         if (file.exists()) {
                             File renamedFile = new File(fileDir + File.separator, newName + ".mp4");
@@ -256,13 +254,32 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void clickRight() {
-        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+        if (timerStart)
+            startActivity(new Intent(this, FoldersActivity.class));
+        else
+            mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickVToggle() {
         switch (focus) {
             case FILE_SAVE:
-                requestSpeech();
+                String folderName = getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
+                String speak = "현재 폴더" + folderName + "변경하시려면 오른쪽 키 입력";
+                speak(speak);
+                if (!timerStart)
+                    timerStart = true;
+                new CountDownTimer(3000, 1000) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        timerStart = false;
+                        requestSpeech();
+                    }
+                };
                 break;
             case RESUME_RECORD:
                 allowedExit = true; //alowedExit는 소스파일을 삭제할지 말지를 결정하는 플래그, 이 경우는 소스파일을 삭제하지 않고 이어 녹음함

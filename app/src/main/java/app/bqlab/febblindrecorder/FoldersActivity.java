@@ -8,10 +8,8 @@ import android.os.CountDownTimer;
 import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -28,14 +26,14 @@ public class FoldersActivity extends AppCompatActivity {
     //variables
     boolean clicked;
     int focus, soundMenuEnd, soundDisable;
-    String fileDir;
-    String[] fileNames;
+    String folderDir;
+    String[] folderNames;
     //objects
     TextToSpeech mTTS;
     SoundPool mSoundPool;
     //layouts
-    LinearLayout filesBody;
-    List<FileLayout> filesBodyLayouts;
+    LinearLayout foldersBody;
+    List<FileLayout> foldersBodyLayouts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,41 +92,41 @@ public class FoldersActivity extends AppCompatActivity {
 
     private void init() {
         //initialize
-        filesBody = findViewById(R.id.files_body);
-        filesBodyLayouts = new ArrayList<FileLayout>();
-        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
+        foldersBody = findViewById(R.id.folders_body);
+        foldersBodyLayouts = new ArrayList<>();
+        folderDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
         //setup
-        findViewById(R.id.files_bot_up).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.folders_bot_up).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 clickUp();
             }
         });
-        findViewById(R.id.files_bot_down).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.folders_bot_down).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 clickDown();
             }
         });
-        findViewById(R.id.files_bot_left).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.folders_bot_left).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 clickLeft();
             }
         });
-        findViewById(R.id.files_bot_right).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.folders_bot_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 clickRight();
             }
         });
-        findViewById(R.id.files_bot_enter).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.folders_bot_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 clickVToggle();
             }
         });
-        findViewById(R.id.files_bot_close).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.folders_bot_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 clickXToggle();
@@ -148,9 +146,9 @@ public class FoldersActivity extends AppCompatActivity {
 
     private void clickDown() {
         focus++;
-        if (focus > filesBodyLayouts.size() - 1) {
+        if (focus > foldersBodyLayouts.size() - 1) {
             mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
-            focus = filesBodyLayouts.size() - 1;
+            focus = foldersBodyLayouts.size() - 1;
         }
         speakFocus();
         resetFocus();
@@ -162,9 +160,9 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void clickRight() {
-        String fileName = fileNames[focus];
-        if (new File(fileDir, fileName).exists()) {
-            getSharedPreferences("setting",MODE_PRIVATE).edit().putString("SAVE_FOLDER_NAME", fileName).apply();
+        String folderName = folderNames[focus];
+        if (new File(folderDir, folderName).exists()) {
+            getSharedPreferences("setting",MODE_PRIVATE).edit().putString("SAVE_FOLDER_NAME", folderName).apply();
             speak("폴더가 변경되었습니다.");
         } else {
             loadFolders();
@@ -178,7 +176,7 @@ public class FoldersActivity extends AppCompatActivity {
     private void clickXToggle() {
         if (clicked) {
             //두번째 클릭
-            File file = new File(fileDir, fileNames[focus]);
+            File file = new File(folderDir, folderNames[focus]);
             boolean success = file.delete();
             loadFolders();
             resetFocus();
@@ -201,33 +199,33 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void loadFolders() {
-        if (new File(fileDir).list().length == 0) {
+        if (new File(folderDir).list().length == 0) {
             startActivity(new Intent(this, MainActivity.class));
             speak("저장된 파일이 없습니다.");
         } else {
             //파일을 커스텀 레이아웃인 FileLayout으로 치환하여 뷰그룹에 추가(파일 리스트->레이아웃 그룹으로 변환 정도로 이해하면 쉽습니다)
-            filesBody.removeAllViews();
-            File dir = new File(fileDir);
-            fileNames = dir.list();
-            filesBodyLayouts = new ArrayList<>();
-            if (fileNames.length != 0) {
-                for (int i = 0; i < fileNames.length; i++) {
-                    FileLayout fileLayout = new FileLayout(this, String.valueOf(i + 1), fileNames[i]);
-                    filesBodyLayouts.add(fileLayout);
-                    filesBody.addView(fileLayout);
+            foldersBody.removeAllViews();
+            File dir = new File(folderDir);
+            folderNames = dir.list();
+            foldersBodyLayouts = new ArrayList<>();
+            if (folderNames.length != 0) {
+                for (int i = 0; i < folderNames.length; i++) {
+                    FileLayout fileLayout = new FileLayout(this, String.valueOf(i + 1), folderNames[i]);
+                    foldersBodyLayouts.add(fileLayout);
+                    foldersBody.addView(fileLayout);
                 }
             }
         }
     }
 
     private void resetFocus() {
-        for (int i = 0; i < filesBodyLayouts.size(); i++) {
+        for (int i = 0; i < foldersBodyLayouts.size(); i++) {
             if (i != focus) {
                 //포커스가 없는 버튼 처리
-                filesBodyLayouts.get(i).setColor(getDrawable(R.drawable.app_button));
+                foldersBodyLayouts.get(i).setColor(getDrawable(R.drawable.app_button));
             } else {
                 //포커스를 가진 버튼 처리
-                filesBodyLayouts.get(i).setColor(getDrawable(R.drawable.app_button_focussed));
+                foldersBodyLayouts.get(i).setColor(getDrawable(R.drawable.app_button_focussed));
             }
         }
     }
@@ -291,8 +289,8 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void speakFocus() {
-        final String fileName = filesBodyLayouts.get(focus).getButton().getText().toString();
-        long lastModified = new File(fileDir, fileName).lastModified();
+        final String folderName = foldersBodyLayouts.get(focus).getButton().getText().toString();
+        long lastModified = new File(folderDir, folderName).lastModified();
         Date lastModifiedTime = new Date();
         lastModifiedTime.setTime(lastModified);
         String lastModifiedDay = new SimpleDateFormat("yyyy년 MM월 dd일", Locale.KOREA).format(lastModifiedTime);
@@ -306,7 +304,7 @@ public class FoldersActivity extends AppCompatActivity {
                 try {
                     speak(finalLastModifiedDay);
                     Thread.sleep(2500);
-                    speak(fileName);
+                    speak(folderName);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
