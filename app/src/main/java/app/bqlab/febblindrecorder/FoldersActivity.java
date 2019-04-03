@@ -156,8 +156,15 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void clickLeft() {
-        startActivity(new Intent(FoldersActivity.this, FolderActivity.class));
-        finish();
+        if (getIntent().getStringExtra("filePath")!=null) {
+            Intent i = new Intent(this, MenuActivity.class);
+            i.putExtra("filePath", getIntent().getStringExtra("filePath"));
+            i.putExtra("enterOption", "folders");
+            startActivity(i);
+        } else {
+            startActivity(new Intent(FoldersActivity.this, FolderActivity.class));
+            finish();
+        }
     }
 
     private void clickRight() {
@@ -172,6 +179,7 @@ public class FoldersActivity extends AppCompatActivity {
             if (getIntent().getStringExtra("filePath")!=null) {
                 Intent i = new Intent(this, MenuActivity.class);
                 i.putExtra("filePath", getIntent().getStringExtra("filePath"));
+                i.putExtra("enterOption", "folders");
                 startActivity(i);
             }
         } else {

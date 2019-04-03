@@ -284,7 +284,7 @@ public class FilesActivity extends AppCompatActivity {
                 try {
                     Thread.sleep(500);
                     speak("현재 폴더는 " + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", ""));
-                    Thread.sleep(1500);
+                    Thread.sleep(3000);
                     speak("파일목록");
                     Thread.sleep(1500);
                     speakFocus();
