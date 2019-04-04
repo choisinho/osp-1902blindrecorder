@@ -47,6 +47,7 @@ public class FoldersActivity extends AppCompatActivity {
         loadFolders();
         resetFocus();
         setupSoundPool();
+        Log.d(TAG, "onCreate: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
     }
 
     @Override
@@ -155,7 +156,7 @@ public class FoldersActivity extends AppCompatActivity {
     private void clickLeft() {
         if (getIntent().getStringExtra("filePath") != null) {
             Intent i = new Intent(this, MenuActivity.class);
-            i.putExtra("filePath", getIntent().getStringExtra("filePath" ) + "@folders");
+            i.putExtra("filePath", getIntent().getStringExtra("filePath") + "@folders");
             startActivity(i);
             finish();
         } else {

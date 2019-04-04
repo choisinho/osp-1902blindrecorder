@@ -50,7 +50,6 @@ public class MenuActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
-        checkEnterOption();
         init();
         resetFocus();
         setupSoundPool();
@@ -59,8 +58,13 @@ public class MenuActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        setupTTS();
-        speakFirst();
+        try {
+            setupTTS();
+            speakFirst();
+            checkEnterOption();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -68,7 +72,7 @@ public class MenuActivity extends AppCompatActivity {
         super.onDestroy();
         shutupTTS();
         if (!allowedExit) {
-            File file = new File(fileDir, fileName);
+            File file = new File(filePath);
             boolean success = file.delete();
         }
     }
@@ -110,11 +114,15 @@ public class MenuActivity extends AppCompatActivity {
                         case FILE_SAVE:
                             //포커스가 '파일 저장'에 있을 경우 입력된 이름에 따라 녹음파일 저장(이름이 지정되지 않았을 경우 159... 형태의 난수로된 이름으로 지정됨)
                             String newName = speech.get(0);
-                            File file = new File(fileDir, fileName);
+                            Log.d(TAG, "onActivityResult: fileDir: " + fileDir);
+                            Log.d(TAG, "onActivityResult: fileName: " + fileName);
+                            Log.d(TAG, "onActivityResult: filePath: " + filePath);
+                            File file = new File(filePath);
                             if (file.exists()) {
                                 File renamedFile = new File(fileDir, newName + ".mp4");
                                 if (file.renameTo(renamedFile)) {
                                     try {
+                                        Log.d(TAG, "onActivityResult: File saved");
                                         getSharedPreferences("setting", MODE_PRIVATE).edit().putString("LATEST_RECORD_FILE", renamedFile.getPath()).apply();
                                         speak("녹음파일이 저장되었습니다.");
                                         Thread.sleep(1600);
@@ -126,7 +134,7 @@ public class MenuActivity extends AppCompatActivity {
                                 }
                             } else {
                                 try {
-                                    //사용자가 임의로 파일 겨로에 접근하여 삭제했을 경우 발생하는 오류 예외처리
+                                    //사용자가 임의로 파일 경로에 접근하여 삭제했을 경우 발생하는 오류 예외처리
                                     speak("녹음파일이 삭제되었거나 임의로 수정되었습니다.");
                                     Thread.sleep(2000);
                                     finish();
@@ -155,7 +163,7 @@ public class MenuActivity extends AppCompatActivity {
                             }
                         }
                         String newName = "이름없음" + String.valueOf(last + 1); //가장 마지막 숫자보다 1 더 큰 숫자를 끝에 추가
-                        File file = new File(fileDir, fileName);
+                        File file = new File(filePath);
                         if (file.exists()) {
                             File renamedFile = new File(fileDir, newName + ".mp4");
                             if (file.renameTo(renamedFile)) {
@@ -326,7 +334,7 @@ public class MenuActivity extends AppCompatActivity {
                 foldersToHere = true;
                 filePath = filePath.replace("@folders", "");
                 fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
-                fileName = filePath.replace(fileDir + File.separator, "");
+                fileName = filePath.replace(fileDir+File.separator, "");
             } else {
                 fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
                 fileName = filePath.replace(fileDir + File.separator, "");
