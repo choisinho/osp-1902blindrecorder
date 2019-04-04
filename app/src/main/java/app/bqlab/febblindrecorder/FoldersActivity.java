@@ -188,6 +188,8 @@ public class FoldersActivity extends AppCompatActivity {
             //두번째 클릭
             File file = new File(folderDir, folderNames[focus]);
             boolean success = file.delete();
+            if (!success)
+                speak("폴더를 비우고 다시 시도하세요.");
             loadFolders();
             resetFocus();
         } else {
