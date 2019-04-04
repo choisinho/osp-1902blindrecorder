@@ -45,8 +45,8 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
         setupTTS();
         speakFirst();
     }
@@ -92,7 +92,6 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void init() {
-        //check
         //initialize
         filePath = getIntent().getStringExtra("filePath");
         fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
@@ -185,8 +184,6 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void setupTTS() {
-        mTTSMap = new HashMap<String, String>();
-        mTTSMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "unique_id");
         mTTS = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -204,28 +201,6 @@ public class PlayActivity extends AppCompatActivity {
         });
         mTTS.setPitch(0.7f);
         mTTS.setSpeechRate(1.2f);
-        mTTS.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-            @Override
-            public void onStart(String utteranceId) {
-                speaking = true;
-            }
-
-            @Override
-            public void onDone(String utteranceId) {
-                try {
-                    Thread.sleep(2000);
-                    speaking = false;
-                    startPlaying();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onError(String utteranceId) {
-                speaking = false;
-            }
-        });
     }
 
     private void shutupTTS() {
@@ -243,17 +218,19 @@ public class PlayActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
+                    String speak = "현재 폴더는 " + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
                     Thread.sleep(500);
                     //STT로 검색하여 이 화면에 도달하였을 경우 추가적으로 음성 출력
                     if (getIntent().getStringExtra("searchResult") != null) {
-                        speak("현재 폴더는 " + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FODLER_NAME", ""));
+                        speak(speak);
                         Thread.sleep(3000);
                         speak("파일을 찾았습니다. 곧 재생됩니다.");
-                        Thread.sleep(1500);
+                        Thread.sleep(3500);
                     }
                     //파일 정보 음성으로 출력
                     speak(fileName.replace(".mp4", "") + new SimpleDateFormat(" yyyy년 MM월 dd일").format(mFile.lastModified()));
                     Thread.sleep(3000);
+                    startPlaying();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

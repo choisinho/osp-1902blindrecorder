@@ -122,10 +122,10 @@ public class MenuActivity extends AppCompatActivity {
                                 File renamedFile = new File(fileDir, newName + ".mp4");
                                 if (file.renameTo(renamedFile)) {
                                     try {
-                                        Log.d(TAG, "onActivityResult: File saved");
                                         getSharedPreferences("setting", MODE_PRIVATE).edit().putString("LATEST_RECORD_FILE", renamedFile.getPath()).apply();
                                         speak("녹음파일이 저장되었습니다.");
                                         Thread.sleep(1600);
+                                        startActivity(new Intent(this, MainActivity.class));
                                         finish();
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
@@ -137,6 +137,7 @@ public class MenuActivity extends AppCompatActivity {
                                     //사용자가 임의로 파일 경로에 접근하여 삭제했을 경우 발생하는 오류 예외처리
                                     speak("녹음파일이 삭제되었거나 임의로 수정되었습니다.");
                                     Thread.sleep(2000);
+                                    startActivity(new Intent(this, MainActivity.class));
                                     finish();
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
@@ -171,6 +172,7 @@ public class MenuActivity extends AppCompatActivity {
                                     getSharedPreferences("setting", MODE_PRIVATE).edit().putString("LATEST_RECORD_FILE", newName).apply();
                                     speak("녹음파일이 저장되었습니다.");
                                     Thread.sleep(1600);
+                                    startActivity(new Intent(this, MainActivity.class));
                                     finish();
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
@@ -184,6 +186,7 @@ public class MenuActivity extends AppCompatActivity {
                                 finish();
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
+                                startActivity(new Intent(this, MainActivity.class));
                                 finish();
                             }
                         }

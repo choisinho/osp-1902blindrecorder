@@ -47,7 +47,6 @@ public class FoldersActivity extends AppCompatActivity {
         loadFolders();
         resetFocus();
         setupSoundPool();
-        Log.d(TAG, "onCreate: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
     }
 
     @Override
