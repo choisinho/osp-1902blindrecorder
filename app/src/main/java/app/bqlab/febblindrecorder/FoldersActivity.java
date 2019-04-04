@@ -142,8 +142,8 @@ public class FoldersActivity extends AppCompatActivity {
             mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
             focus = 0;
         }
-        speakFocus();
         resetFocus();
+        speakFocus();
     }
 
     private void clickDown() {
@@ -152,8 +152,8 @@ public class FoldersActivity extends AppCompatActivity {
             mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
             focus = filesBodyLayouts.size() - 1;
         }
-        speakFocus();
         resetFocus();
+        speakFocus();
     }
 
     private void clickLeft() {
