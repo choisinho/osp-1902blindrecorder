@@ -222,6 +222,11 @@ public class RecordActivity extends AppCompatActivity {
         shutupTTS();
         //레이아웃 세팅
         ((Button) findViewById(R.id.record_body_start)).setText("녹음중지");
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         //파일 경로 세팅
         fileName = System.currentTimeMillis() + ".mp4";
         filePath = fileDir + File.separator + fileName;
@@ -250,6 +255,11 @@ public class RecordActivity extends AppCompatActivity {
         shutupTTS();
         //레이아웃 세팅
         ((Button) findViewById(R.id.record_body_start)).setText("녹음시작");
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         //녹음 종료
         try {
             recording = false;
