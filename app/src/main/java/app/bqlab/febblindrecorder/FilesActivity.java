@@ -8,7 +8,6 @@ import android.os.CountDownTimer;
 import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
@@ -19,8 +18,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
-import java.util.Timer;
 
 public class FilesActivity extends AppCompatActivity {
 
@@ -93,9 +90,9 @@ public class FilesActivity extends AppCompatActivity {
 
     private void init() {
         //initialize
-        filesBody = findViewById(R.id.files_body);
+        filesBody = findViewById(R.id.folders_body);
         filesBodyLayouts = new ArrayList<FileLayout>();
-        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator +getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
+        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
         //setup
         findViewById(R.id.files_bot_up).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -163,8 +160,9 @@ public class FilesActivity extends AppCompatActivity {
     private void clickRight() {
         String fileName = fileNames[focus];
         if (new File(fileDir, fileName).exists()) {
+            File file = new File(fileDir, fileName);
             Intent i = new Intent(FilesActivity.this, PlayActivity.class);
-            i.putExtra("fileName", fileName);
+            i.putExtra("filePath", file.getPath());
             i.putExtra("flag", "list");
             startActivity(i);
         } else {
@@ -179,10 +177,14 @@ public class FilesActivity extends AppCompatActivity {
     private void clickXToggle() {
         if (clicked) {
             //두번째 클릭
-            File file = new File(fileDir, fileNames[focus]);
-            boolean success = file.delete();
-            loadFiles();
-            resetFocus();
+            try {
+                File file = new File(fileDir, fileNames[focus]);
+                boolean success = file.delete();
+                loadFiles();
+                resetFocus();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else {
             //첫번째 클릭
             clicked = true;
@@ -281,6 +283,8 @@ public class FilesActivity extends AppCompatActivity {
             public void run() {
                 try {
                     Thread.sleep(500);
+                    speak("현재 폴더는 " + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", ""));
+                    Thread.sleep(3000);
                     speak("파일목록");
                     Thread.sleep(1500);
                     speakFocus();

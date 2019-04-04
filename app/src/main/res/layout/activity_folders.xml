@@ -18,14 +18,14 @@
         android:overScrollMode="never">
 
         <LinearLayout
-            android:id="@+id/files_body"
+            android:id="@+id/folders_body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" />
     </ScrollView>
 
     <LinearLayout
-        android:id="@+id/files_bot"
+        android:id="@+id/folders_bot"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginHorizontal="10dp"
@@ -46,7 +46,7 @@
                 android:layout_height="wrap_content">
 
                 <Button
-                    android:id="@+id/files_bot_up"
+                    android:id="@+id/folders_bot_up"
                     style="@style/Base.Widget.AppCompat.Button.Borderless"
                     android:layout_width="45dp"
                     android:layout_height="50dp"
@@ -60,7 +60,7 @@
                 android:orientation="horizontal">
 
                 <Button
-                    android:id="@+id/files_bot_left"
+                    android:id="@+id/folders_bot_left"
                     style="@style/Base.Widget.AppCompat.Button.Borderless"
                     android:layout_width="50dp"
                     android:layout_height="45dp"
@@ -68,7 +68,7 @@
                     android:background="@drawable/arrow_left" />
 
                 <Button
-                    android:id="@+id/files_bot_right"
+                    android:id="@+id/folders_bot_right"
                     style="@style/Base.Widget.AppCompat.Button.Borderless"
                     android:layout_width="50dp"
                     android:layout_height="45dp"
@@ -80,7 +80,7 @@
                 android:layout_height="wrap_content">
 
                 <Button
-                    android:id="@+id/files_bot_down"
+                    android:id="@+id/folders_bot_down"
                     style="@style/Base.Widget.AppCompat.Button.Borderless"
                     android:layout_width="45dp"
                     android:layout_height="50dp"
@@ -96,7 +96,7 @@
             android:paddingHorizontal="50dp">
 
             <Button
-                android:id="@+id/files_bot_enter"
+                android:id="@+id/folders_bot_enter"
                 style="@style/Base.Widget.AppCompat.Button.Borderless"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
@@ -104,7 +104,7 @@
                 android:background="@drawable/toggle_enter" />
 
             <Button
-                android:id="@+id/files_bot_close"
+                android:id="@+id/folders_bot_close"
                 style="@style/Base.Widget.AppCompat.Button.Borderless"
                 android:layout_width="45dp"
                 android:layout_height="45dp"

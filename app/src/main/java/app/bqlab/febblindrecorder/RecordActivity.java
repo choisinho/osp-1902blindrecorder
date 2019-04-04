@@ -125,7 +125,7 @@ public class RecordActivity extends AppCompatActivity {
     private void init() {
         //initialize
         sourcePathes = new ArrayList<>();
-        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
+        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
         //setup
         findViewById(R.id.record_bot_up).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -199,9 +199,8 @@ public class RecordActivity extends AppCompatActivity {
             //소스 파일 병합
             mergeAudioFiles(sourcePathes, targetPath);
             cleanupSources();
-            //파일명, 소스 파일 리스트 전달
             Intent i = new Intent(RecordActivity.this, MenuActivity.class);
-            i.putExtra("fileName", targetName);
+            i.putExtra("filePath", targetPath);
             startActivity(i);
             finish();
         } else {
@@ -219,7 +218,7 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
-        //음성안내 정지
+        //음성안내 중지
         shutupTTS();
         //레이아웃 세팅
         ((Button) findViewById(R.id.record_body_start)).setText("녹음중지");
@@ -363,9 +362,9 @@ public class RecordActivity extends AppCompatActivity {
     private void checkResumedFile() {
         //이어서 녹음 버튼을 클릭했을 시 소스파일을 인식해야 함
         //작업과정: 녹화시작 -> 녹화종료 -> 1592..로 된 소스파일 생성 -> @토글클릭 -> 소스파일 모두 병합 -> 메뉴화면으로 이동(소스파일명 전달됨) -> 이어서 녹음
-        String resumedFile = getIntent().getStringExtra("fileName"); //이 파일이 이어서 녹음될 소스파일(병합된 소스파일)
+        String resumedFile = getIntent().getStringExtra("filePath"); //이 파일이 이어서 녹음될 소스파일(병합된 소스파일)
         if (resumedFile != null) {
-            sourcePathes.add(fileDir + File.separator + resumedFile); //병합될 파일 리스트(만약 @토글을 클릭시 이 리스트 속 모든 파일은 다시 병합됨)
+            sourcePathes.add(resumedFile); //병합될 파일 리스트(만약 @토글을 클릭시 이 리스트 속 모든 파일은 다시 병합됨)
             new Thread(new Runnable() {
                 @Override
                 public void run() {

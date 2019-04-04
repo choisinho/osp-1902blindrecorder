@@ -94,8 +94,9 @@ public class PlayActivity extends AppCompatActivity {
     private void init() {
         //check
         //initialize
-        fileName = getIntent().getStringExtra("fileName");
-        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
+        filePath = getIntent().getStringExtra("filePath");
+        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
+        fileName = filePath.replace(fileDir + File.separator, "");
         mFile = new File(fileDir, fileName);
         //setup
         findViewById(R.id.play_bot_up).setOnClickListener(new View.OnClickListener() {
@@ -245,11 +246,13 @@ public class PlayActivity extends AppCompatActivity {
                     Thread.sleep(500);
                     //STT로 검색하여 이 화면에 도달하였을 경우 추가적으로 음성 출력
                     if (getIntent().getStringExtra("searchResult") != null) {
-                        speak(getIntent().getStringExtra("searchResult"));
+                        speak("현재 폴더는 " + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FODLER_NAME", ""));
+                        Thread.sleep(3000);
+                        speak("파일을 찾았습니다. 곧 재생됩니다.");
                         Thread.sleep(1500);
                     }
                     //파일 정보 음성으로 출력
-                    speak(fileName.replace(".mp4", "") + new SimpleDateFormat("yyyy년 MM월 dd일").format(mFile.lastModified()));
+                    speak(fileName.replace(".mp4", "") + new SimpleDateFormat(" yyyy년 MM월 dd일").format(mFile.lastModified()));
                     Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -260,8 +263,6 @@ public class PlayActivity extends AppCompatActivity {
 
     private void startPlaying() {
         if (!playing) {
-            //파일 경로 지정
-            filePath = fileDir + File.separator + fileName;
             //MediaRecorder 속성 세팅 (확장자, 코덱 등)
             mRecorder = new MediaRecorder();
             mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
@@ -294,9 +295,7 @@ public class PlayActivity extends AppCompatActivity {
                         mPlayer.setDataSource(filePath);
                         mPlayer.prepare();
                         mPlayer.start();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }

@@ -1,16 +1,16 @@
 package app.bqlab.febblindrecorder;
 
 import android.app.Activity;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
+import android.renderscript.ScriptGroup;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -23,6 +23,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public class MenuActivity extends AppCompatActivity {
 
@@ -32,10 +33,11 @@ public class MenuActivity extends AppCompatActivity {
     final int RE_RECORD = 2;          //재 녹음
     final int RETURN_MAIN = 3;        //메뉴로 돌아가기
     final int SPEECH_TO_TEXT = 1000;  //STT 데이터 요청
+    final String TAG = "MenuActivity";
     //variables
     int focus, soundMenuEnd, soundDisable;
-    boolean allowedExit;
-    String fileName, fileDir;
+    boolean allowedExit, timerStart, foldersToHere;
+    String fileName, fileDir, filePath;
     List<String> speech;
     //objects
     TextToSpeech mTTS;
@@ -48,6 +50,7 @@ public class MenuActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
+        checkEnterOption();
         init();
         resetFocus();
         setupSoundPool();
@@ -109,10 +112,10 @@ public class MenuActivity extends AppCompatActivity {
                             String newName = speech.get(0);
                             File file = new File(fileDir, fileName);
                             if (file.exists()) {
-                                File renamedFile = new File(fileDir + File.separator, newName + ".mp4");
+                                File renamedFile = new File(fileDir, newName + ".mp4");
                                 if (file.renameTo(renamedFile)) {
                                     try {
-                                        getSharedPreferences("setting", MODE_PRIVATE).edit().putString("LATEST_RECORD_FILE", newName).apply();
+                                        getSharedPreferences("setting", MODE_PRIVATE).edit().putString("LATEST_RECORD_FILE", renamedFile.getPath()).apply();
                                         speak("녹음파일이 저장되었습니다.");
                                         Thread.sleep(1600);
                                         finish();
@@ -139,7 +142,7 @@ public class MenuActivity extends AppCompatActivity {
             if (requestCode == SPEECH_TO_TEXT) {
                 switch (focus) {
                     case FILE_SAVE:
-                        int last = 1;
+                        int last = 0;
                         //사용자가 정확한 발음으로 음성입력하지 않았을 경우 이름은 이름없음N과 같은 형태로 지정되도록 설정
                         for (File file : new File(fileDir).listFiles()) {
                             if (file.getName().contains("이름없음")) {
@@ -151,10 +154,10 @@ public class MenuActivity extends AppCompatActivity {
                                 //가장 마지막 숫자를 검색
                             }
                         }
-                        String newName = "이름없음" + String.valueOf(last+1); //가장 마지막 숫자보다 1 더 큰 숫자를 끝에 추가
+                        String newName = "이름없음" + String.valueOf(last + 1); //가장 마지막 숫자보다 1 더 큰 숫자를 끝에 추가
                         File file = new File(fileDir, fileName);
                         if (file.exists()) {
-                            File renamedFile = new File(fileDir + File.separator, newName + ".mp4");
+                            File renamedFile = new File(fileDir, newName + ".mp4");
                             if (file.renameTo(renamedFile)) {
                                 try {
                                     getSharedPreferences("setting", MODE_PRIVATE).edit().putString("LATEST_RECORD_FILE", newName).apply();
@@ -176,6 +179,7 @@ public class MenuActivity extends AppCompatActivity {
                                 finish();
                             }
                         }
+                        break;
                 }
             }
         }
@@ -185,8 +189,6 @@ public class MenuActivity extends AppCompatActivity {
         //initialization
         menuBody = findViewById(R.id.menu_body);
         menuBodyButtons = new ArrayList<View>();
-        fileName = getIntent().getStringExtra("fileName");
-        fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장";
         //setting
         for (int i = 0; i < menuBody.getChildCount(); i++)
             menuBodyButtons.add(menuBody.getChildAt(i));
@@ -250,24 +252,54 @@ public class MenuActivity extends AppCompatActivity {
 
     private void clickLeft() {
         Intent i = new Intent(MenuActivity.this, RecordActivity.class);
-        i.putExtra("fileName", fileName);
+        i.putExtra("filePath", filePath);
         startActivity(i);
         finish();
     }
 
     private void clickRight() {
-        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+        if (timerStart) {
+            allowedExit = true;
+            Intent i = new Intent(this, FoldersActivity.class);
+            i.putExtra("filePath", filePath);
+            startActivity(i);
+            finish();
+        } else
+            mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickVToggle() {
         switch (focus) {
             case FILE_SAVE:
-                requestSpeech();
+                mTTS.stop();
+                String folderName = getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
+                try {
+                    speak("현재 폴더" + folderName);
+                    Thread.sleep(2000);
+                    speak("변경하시려면 오른쪽 키 입력");
+                    Thread.sleep(1000);
+                    if (!timerStart)
+                        timerStart = true;
+                    new CountDownTimer(3000, 1000) {
+                        @Override
+                        public void onTick(long millisUntilFinished) {
+
+                        }
+
+                        @Override
+                        public void onFinish() {
+                            timerStart = false;
+                            requestSpeech();
+                        }
+                    }.start();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 break;
             case RESUME_RECORD:
                 allowedExit = true; //alowedExit는 소스파일을 삭제할지 말지를 결정하는 플래그, 이 경우는 소스파일을 삭제하지 않고 이어 녹음함
                 Intent i = new Intent(MenuActivity.this, RecordActivity.class);
-                i.putExtra("fileName", fileName);
+                i.putExtra("filePath", filePath);
                 startActivity(i);
                 finish();
                 break;
@@ -285,6 +317,23 @@ public class MenuActivity extends AppCompatActivity {
 
     private void clickXToggle() {
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+    }
+
+    private void checkEnterOption() {
+        try {
+            filePath = getIntent().getStringExtra("filePath");
+            if (filePath.contains("@folders")) {
+                foldersToHere = true;
+                filePath = filePath.replace("@folders", "");
+                fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
+                fileName = filePath.replace(fileDir + File.separator, "");
+            } else {
+                fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
+                fileName = filePath.replace(fileDir + File.separator, "");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void resetFocus() {
@@ -350,6 +399,11 @@ public class MenuActivity extends AppCompatActivity {
                     speak("녹음메뉴");
                     Thread.sleep(1500);
                     speakFocus();
+                    if (foldersToHere) {
+                        Thread.sleep(1500);
+                        requestSpeech();
+                        Thread.sleep(3000);
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
