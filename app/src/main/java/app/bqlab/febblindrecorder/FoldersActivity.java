@@ -309,9 +309,9 @@ public class FoldersActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    speak(finalLastModifiedDay);
-                    Thread.sleep(2000);
                     speak(folderName);
+                    Thread.sleep(2000);
+                    speak(finalLastModifiedDay);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
