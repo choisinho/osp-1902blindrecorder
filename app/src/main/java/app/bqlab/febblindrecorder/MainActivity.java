@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     MediaPlayer mPlayer;
     MediaRecorder mRecorder;
     SoundPool mSoundPool;
+    Thread speakThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -242,7 +243,13 @@ public class MainActivity extends AppCompatActivity {
         if (!mFile.exists())
             success = mFile.mkdir();
         if (Objects.equals(getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", ""), "")) {
-            speak("폴더를 설정하지 않았습니다.");
+            speakThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    speak("폴더를 설정하지 않았습니다.");
+                }
+            });
+            speakThread.start();
             return false;
         }
         return true;
@@ -310,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void speakFirst() {
         //최초 화면 실행시 출력되는 음성 설정
-        new Thread(new Runnable() {
+        speakThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -322,54 +329,79 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        });
+        speakThread.start();
     }
 
     private void speakFocus() {
         //현재 포커스를 가진 버튼 텍스트 음성으로 출력
-        final Button button = (Button) mainBodyButtons.get(focus);
-        speak(button.getText().toString());
+        speakThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final Button button = (Button) mainBodyButtons.get(focus);
+                speak(button.getText().toString());
+            }
+        });
+        speakThread.start();
     }
 
     private void playRecentFile() {
         loadFiles(); //파일 리스트 동기화
         String latestFilePath = getSharedPreferences("setting", MODE_PRIVATE).getString("LATEST_RECORD_FILE", "");
-        File latestFile = new File(latestFilePath);
+        final File latestFile = new File(latestFilePath);
         if (Objects.equals(latestFilePath, "")) {
-            speak("최근 저장한 파일을 찾을 수 없습니다.");
+            speakThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    speakThread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            speak("최근 저장한 파일을 찾을 수 없습니다.");
+                        }
+                    });
+                    speakThread.start();
+                }
+            });
+            speakThread.start();
         } else {
-            try {
-                //최근파일 재생
-                speak("최근저장메모");
-                Thread.sleep(1000);
-                speak(latestFile.getName());
-                Thread.sleep(3000);
-                if (!playing) {
-                    mRecorder = new MediaRecorder();
-                    mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                    mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-                    mRecorder.setOutputFile(latestFilePath);
-                    mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-                    playing = true;
+            //최근파일 재생
+            speakThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
                     try {
-                        mPlayer = new MediaPlayer();
-                        mPlayer.setDataSource(latestFilePath);
-                        mPlayer.prepare();
-                        mPlayer.start();
-                        mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                            @Override
-                            public void onCompletion(MediaPlayer mp) {
-                                playing = false;
-                                setupTTS();
-                                speakFocus();
-                            }
-                        });
-                    } catch (IOException e) {
+                        speak("최근저장메모");
+                        Thread.sleep(1000);
+                        speak(latestFile.getName());
+                        Thread.sleep(3000);
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            });
+            speakThread.start();
+            if (!playing) {
+                mRecorder = new MediaRecorder();
+                mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                mRecorder.setOutputFile(latestFilePath);
+                mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+                playing = true;
+                try {
+                    mPlayer = new MediaPlayer();
+                    mPlayer.setDataSource(latestFilePath);
+                    mPlayer.prepare();
+                    mPlayer.start();
+                    mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                        @Override
+                        public void onCompletion(MediaPlayer mp) {
+                            playing = false;
+                            setupTTS();
+                            speakFocus();
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
