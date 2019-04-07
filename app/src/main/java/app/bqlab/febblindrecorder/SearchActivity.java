@@ -36,6 +36,7 @@ public class SearchActivity extends AppCompatActivity {
     //objects
     TextToSpeech mTTS;
     SoundPool mSoundPool;
+    Thread speakThread;
     //layouts
     LinearLayout searchBody;
     List<View> searchBodyButtons;
@@ -106,12 +107,18 @@ public class SearchActivity extends AppCompatActivity {
                                 i.putExtra("searchResult", "파일찾기성공"); //PlayActivity로 이동할 때 성공 여부를 전달함
                                 startActivity(i);
                             } else {
-                                try {
-                                    speak("파일을 찾지 못했습니다.");
-                                    Thread.sleep(1500);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
+                                speakThread = new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            speak("파일을 찾지 못했습니다.");
+                                            Thread.sleep(1500);
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+                                speakThread.start();
                             }
                             break;
                     }
@@ -200,8 +207,15 @@ public class SearchActivity extends AppCompatActivity {
             case SEARCY_BY_LIST:
                 if (new File(fileDir).list().length != 0)
                     startActivity(new Intent(SearchActivity.this, FilesActivity.class));
-                else
-                    speak("저장된 파일이 없습니다.");
+                else {
+                    speakThread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            speak("저장된 파일이 없습니다.");
+                        }
+                    });
+                    speakThread.start();
+                }
                 break;
         }
     }
@@ -260,8 +274,14 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     private void shutupTTS() {
+        speakThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                speak("");
+            }
+        });
+        speakThread.start();
         mTTS.shutdown();
-        mTTS.stop();
     }
 
     private void speak(String text) {
@@ -269,7 +289,7 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     private void speakFirst() {
-        new Thread(new Runnable() {
+        speakThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -281,12 +301,19 @@ public class SearchActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        });
+        speakThread.start();
     }
 
     private void speakFocus() {
         final Button button = (Button) searchBodyButtons.get(focus);
-        speak(button.getText().toString());
+        speakThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                speak(button.getText().toString());
+            }
+        });
+        speakThread.start();
     }
 
     private void requestSpeech() {

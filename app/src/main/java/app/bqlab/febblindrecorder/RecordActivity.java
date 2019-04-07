@@ -50,6 +50,7 @@ public class RecordActivity extends AppCompatActivity {
     MediaRecorder mRecorder;
     SoundPool mSoundPool;
     TextToSpeech mTTS;
+    Thread speakThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -342,7 +343,13 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void shutupTTS() {
-        mTTS.stop();
+        speakThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                speak("");
+            }
+        });
+        speakThread.start();
         mTTS.shutdown();
     }
 

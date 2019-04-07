@@ -35,6 +35,7 @@ public class PlayActivity extends AppCompatActivity {
     MediaRecorder mRecorder;
     HashMap<String, String> mTTSMap;
     SoundPool mSoundPool;
+    Thread speakThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -204,8 +205,14 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void shutupTTS() {
+        speakThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                speak("");
+            }
+        });
+        speakThread.start();
         mTTS.shutdown();
-        mTTS.stop();
     }
 
     private void speak(String text) {
@@ -213,29 +220,54 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void speakFirst() {
-        new Thread(new Runnable() {
+        speakThread = new Thread(new Runnable() {
             @SuppressLint("SimpleDateFormat")
             @Override
             public void run() {
+                    final String speak = "현재 폴더는 " + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
                 try {
-                    String speak = "현재 폴더는 " + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
                     Thread.sleep(500);
-                    //STT로 검색하여 이 화면에 도달하였을 경우 추가적으로 음성 출력
-                    if (getIntent().getStringExtra("searchResult") != null) {
-                        speak(speak);
-                        Thread.sleep(3000);
-                        speak("파일을 찾았습니다. 곧 재생됩니다.");
-                        Thread.sleep(3500);
-                    }
-                    //파일 정보 음성으로 출력
-                    speak(fileName.replace(".mp4", "") + new SimpleDateFormat(" yyyy년 MM월 dd일").format(mFile.lastModified()));
-                    Thread.sleep(3000);
-                    startPlaying();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                //STT로 검색하여 이 화면에 도달하였을 경우 추가적으로 음성 출력
+                    if (getIntent().getStringExtra("searchResult") != null) {
+                        speakThread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                speak(speak);
+                                try {
+                                    Thread.sleep(3000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                                speak("파일을 찾았습니다. 곧 재생됩니다.");
+                                try {
+                                    Thread.sleep(3500);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                        speakThread.start();
+                    }
+                    //파일 정보 음성으로 출력
+                    speakThread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            speak(fileName.replace(".mp4", "") + new SimpleDateFormat(" yyyy년 MM월 dd일").format(mFile.lastModified()));
+                            try {
+                                Thread.sleep(3000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                    speakThread.start();
+                    startPlaying();
             }
-        }).start();
+        });
+        speakThread.start();
     }
 
     private void startPlaying() {

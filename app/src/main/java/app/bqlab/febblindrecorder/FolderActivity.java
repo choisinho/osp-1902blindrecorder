@@ -17,6 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.io.File;
+import java.security.cert.TrustAnchor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -34,6 +35,7 @@ public class FolderActivity extends AppCompatActivity {
     //objects
     TextToSpeech mTTS;
     SoundPool mSoundPool;
+    Thread speakThread;
     //layouts
     LinearLayout folderBody;
     List<View> folderBodyButtons;
@@ -98,16 +100,27 @@ public class FolderActivity extends AppCompatActivity {
                             File newFile = new File(filreDir);
                             boolean success;
                             if (newFile.exists()) {
-                                speak("이미 폴더가 존재합니다.");
-                            }
-                            else {
-                                try {
-                                    success = newFile.mkdir();
-                                    speak("폴더 생성 완료");
-                                    Thread.sleep(1500);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
+                                speakThread = new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        speak("이미 폴더가 존재합니다.");
+                                    }
+                                });
+                                speakThread.start();
+                            } else {
+                                success = newFile.mkdir();
+                                speakThread = new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            speak("폴더 생성 완료");
+                                            Thread.sleep(1500);
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+                                speakThread.start();
                             }
                             break;
                     }
@@ -195,8 +208,15 @@ public class FolderActivity extends AppCompatActivity {
             case FOLDER_CHANGE:
                 if (new File(fileDir).list().length != 0)
                     startActivity(new Intent(this, FoldersActivity.class));
-                else
-                    speak("생성된 폴더가 없습니다.");
+                else {
+                    speakThread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            speak("생성된 폴더가 없습니다.");
+                        }
+                    });
+                    speakThread.start();
+                }
                 break;
         }
     }
@@ -255,8 +275,14 @@ public class FolderActivity extends AppCompatActivity {
     }
 
     private void shutupTTS() {
+        speakThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                speak("");
+            }
+        });
+        speakThread.start();
         mTTS.shutdown();
-        mTTS.stop();
     }
 
     private void speak(String text) {
@@ -264,7 +290,7 @@ public class FolderActivity extends AppCompatActivity {
     }
 
     private void speakFirst() {
-        new Thread(new Runnable() {
+        speakThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -276,21 +302,34 @@ public class FolderActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        });
+        speakThread.start();
     }
 
     private void speakFocus() {
         final Button button = (Button) folderBodyButtons.get(focus);
-        speak(button.getText().toString());
+        speakThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                speak(button.getText().toString());
+            }
+        });
+        speakThread.start();
     }
 
     private void requestSpeech() {
-        try {
-            speak("생성할 폴더명을 말씀해주세요");
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        speakThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    speak("생성할 폴더명을 말씀해주세요");
+                    Thread.sleep(2500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        speakThread.start();
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.KOREA);

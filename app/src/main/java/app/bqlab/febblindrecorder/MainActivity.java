@@ -306,8 +306,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void shutupTTS() {
         //TTS 음성 강제 중지
+        speakThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                speak("");
+            }
+        });
+        speakThread.start();
         mTTS.shutdown();
-        mTTS.stop();
     }
 
     private void speak(String text) {
@@ -353,13 +359,7 @@ public class MainActivity extends AppCompatActivity {
             speakThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    speakThread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            speak("최근 저장한 파일을 찾을 수 없습니다.");
-                        }
-                    });
-                    speakThread.start();
+                    speak("최근 저장한 파일을 찾을 수 없습니다.");
                 }
             });
             speakThread.start();

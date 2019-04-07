@@ -35,6 +35,7 @@ public class FoldersActivity extends AppCompatActivity {
     //objects
     TextToSpeech mTTS;
     SoundPool mSoundPool;
+    Thread speakThread;
     //layouts
     LinearLayout foldersBody;
     List<FileLayout> foldersBodyLayouts;
@@ -172,7 +173,13 @@ public class FoldersActivity extends AppCompatActivity {
         String folderName = folderNames[focus];
         if (new File(folderDir, folderName).exists()) {
             getSharedPreferences("setting", MODE_PRIVATE).edit().putString("SAVE_FOLDER_NAME", folderName).apply();
-            speak("폴더가 변경되었습니다.");
+            speakThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    speak("폴더가 변경되었습니다.");
+                }
+            });
+            speakThread.start();
             if (getIntent().getStringExtra("filePath") != null) {
                 Intent i = new Intent(this, MenuActivity.class);
                 i.putExtra("filePath", getIntent().getStringExtra("filePath") + "@folders");
@@ -188,14 +195,27 @@ public class FoldersActivity extends AppCompatActivity {
             //두번째 클릭
             File file = new File(folderDir, folderNames[focus]);
             boolean success = file.delete();
-            if (!success)
-                speak("폴더를 비우고 다시 시도하세요.");
+            if (!success) {
+                speakThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        speak("폴더를 비우고 다시 시도하세요.");
+                    }
+                });
+                speakThread.start();
+            }
             loadFolders();
             resetFocus();
         } else {
             //첫번째 클릭
             clicked = true;
-            speak("한번 더 누르면 폴더가 삭제됩니다.");
+            speakThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    speak("한번 더 누르면 폴더가 삭제됩니다.");
+                }
+            });
+            speakThread.start();
             new CountDownTimer(6000, 1000) { //딜레이 동안 한번 더 토글 클릭 입력시 파일 삭제
                 @Override
                 public void onTick(long millisUntilFinished) {
@@ -271,7 +291,13 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void shutupTTS() {
-        mTTS.stop();
+        speakThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                speak("");
+            }
+        });
+        speakThread.start();
         mTTS.shutdown();
     }
 
@@ -280,7 +306,7 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void speakFirst() {
-        new Thread(new Runnable() {
+        speakThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -292,7 +318,8 @@ public class FoldersActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        });
+        speakThread.start();
     }
 
     private void speakFocus() {
@@ -305,7 +332,7 @@ public class FoldersActivity extends AppCompatActivity {
         if (new SimpleDateFormat("yyyy", Locale.KOREA).format(lastModifiedTime).equals(currentYear))
             lastModifiedDay = lastModifiedDay.replace(currentYear + "년", "");
         final String finalLastModifiedDay = lastModifiedDay;
-        new Thread(new Runnable() {
+        speakThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -316,6 +343,7 @@ public class FoldersActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        });
+        speakThread.start();
     }
 }

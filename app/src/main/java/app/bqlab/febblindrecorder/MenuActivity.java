@@ -42,6 +42,7 @@ public class MenuActivity extends AppCompatActivity {
     //objects
     TextToSpeech mTTS;
     SoundPool mSoundPool;
+    Thread speakThread;
     //layouts
     LinearLayout menuBody;
     List<View> menuBodyButtons;
@@ -114,16 +115,19 @@ public class MenuActivity extends AppCompatActivity {
                         case FILE_SAVE:
                             //포커스가 '파일 저장'에 있을 경우 입력된 이름에 따라 녹음파일 저장(이름이 지정되지 않았을 경우 159... 형태의 난수로된 이름으로 지정됨)
                             String newName = speech.get(0);
-                            Log.d(TAG, "onActivityResult: fileDir: " + fileDir);
-                            Log.d(TAG, "onActivityResult: fileName: " + fileName);
-                            Log.d(TAG, "onActivityResult: filePath: " + filePath);
                             File file = new File(filePath);
                             if (file.exists()) {
                                 File renamedFile = new File(fileDir, newName + ".mp4");
                                 if (file.renameTo(renamedFile)) {
                                     try {
                                         getSharedPreferences("setting", MODE_PRIVATE).edit().putString("LATEST_RECORD_FILE", renamedFile.getPath()).apply();
-                                        speak("녹음파일이 저장되었습니다.");
+                                        speakThread = new Thread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                speak("녹음파일이 저장되었습니다.");
+                                            }
+                                        });
+                                        speakThread.start();
                                         Thread.sleep(1600);
                                         startActivity(new Intent(this, MainActivity.class));
                                         finish();
@@ -135,7 +139,13 @@ public class MenuActivity extends AppCompatActivity {
                             } else {
                                 try {
                                     //사용자가 임의로 파일 경로에 접근하여 삭제했을 경우 발생하는 오류 예외처리
-                                    speak("녹음파일이 삭제되었거나 임의로 수정되었습니다.");
+                                    speakThread = new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            speak("녹음파일이 삭제되었거나 임의로 수정되었습니다.");
+                                        }
+                                    });
+                                    speakThread.start();
                                     Thread.sleep(2000);
                                     startActivity(new Intent(this, MainActivity.class));
                                     finish();
@@ -170,7 +180,13 @@ public class MenuActivity extends AppCompatActivity {
                             if (file.renameTo(renamedFile)) {
                                 try {
                                     getSharedPreferences("setting", MODE_PRIVATE).edit().putString("LATEST_RECORD_FILE", newName).apply();
-                                    speak("녹음파일이 저장되었습니다.");
+                                    speakThread = new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            speak("녹음파일이 저장되었습니다.");
+                                        }
+                                    });
+                                    speakThread.start();
                                     Thread.sleep(1600);
                                     startActivity(new Intent(this, MainActivity.class));
                                     finish();
@@ -181,7 +197,13 @@ public class MenuActivity extends AppCompatActivity {
                             }
                         } else {
                             try {
-                                speak("녹음파일이 삭제되었거나 임의로 수정되었습니다.");
+                                speakThread = new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        speak("녹음파일이 삭제되었거나 임의로 수정되었습니다.");
+                                    }
+                                });
+                                speakThread.start();
                                 Thread.sleep(2000);
                                 finish();
                             } catch (InterruptedException e) {
@@ -283,29 +305,40 @@ public class MenuActivity extends AppCompatActivity {
         switch (focus) {
             case FILE_SAVE:
                 mTTS.stop();
-                String folderName = getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
-                try {
-                    speak("현재 폴더" + folderName);
-                    Thread.sleep(2000);
-                    speak("변경하시려면 오른쪽 키 입력");
-                    Thread.sleep(1000);
-                    if (!timerStart)
-                        timerStart = true;
-                    new CountDownTimer(3000, 1000) {
-                        @Override
-                        public void onTick(long millisUntilFinished) {
-
+                final String folderName = getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
+                speakThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            speak("현재 폴더" + folderName);
+                            Thread.sleep(2000);
+                            speak("변경하시려면 오른쪽 키 입력");
+                            Thread.sleep(1000);
+                            if (!timerStart)
+                                timerStart = true;
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                new CountDownTimer(3000, 1000) {
+                                    @Override
+                                    public void onTick(long millisUntilFinished) {
 
-                        @Override
-                        public void onFinish() {
-                            timerStart = false;
-                            requestSpeech();
-                        }
-                    }.start();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                                    }
+
+                                    @Override
+                                    public void onFinish() {
+                                        timerStart = false;
+                                        requestSpeech();
+                                    }
+                                }.start();
+                            }
+                        });
+                    }
+                });
+                speakThread.start();
                 break;
             case RESUME_RECORD:
                 allowedExit = true; //alowedExit는 소스파일을 삭제할지 말지를 결정하는 플래그, 이 경우는 소스파일을 삭제하지 않고 이어 녹음함
@@ -337,7 +370,7 @@ public class MenuActivity extends AppCompatActivity {
                 foldersToHere = true;
                 filePath = filePath.replace("@folders", "");
                 fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
-                fileName = filePath.replace(fileDir+File.separator, "");
+                fileName = filePath.replace(fileDir + File.separator, "");
             } else {
                 fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "음성메모장" + File.separator + getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
                 fileName = filePath.replace(fileDir + File.separator, "");
@@ -393,7 +426,13 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void shutupTTS() {
-        mTTS.stop();
+        speakThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                speak("");
+            }
+        });
+        speakThread.start();
         mTTS.shutdown();
     }
 
@@ -402,7 +441,7 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void speakFirst() {
-        new Thread(new Runnable() {
+        speakThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -419,21 +458,34 @@ public class MenuActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        });
+        speakThread.start();
     }
 
     private void speakFocus() {
         final Button button = (Button) menuBodyButtons.get(focus);
-        speak(button.getText().toString());
+        speakThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                speak(button.getText().toString());
+            }
+        });
+        speakThread.start();
     }
 
     private void requestSpeech() {
-        try {
-            speak("파일명을 말하세요.");
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        speakThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    speak("파일명을 말하세요.");
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        speakThread.start();
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.KOREA);
