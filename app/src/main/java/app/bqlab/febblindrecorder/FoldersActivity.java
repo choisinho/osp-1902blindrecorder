@@ -297,14 +297,12 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void shutupTTS() {
-        speakThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                speak("");
-            }
-        });
-        speakThread.start();
-        mTTS.shutdown();
+        try {
+            speakThread.interrupt();
+            speakThread = null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void speak(String text) {
