@@ -176,6 +176,7 @@ public class FolderActivity extends AppCompatActivity {
     }
 
     private void clickUp() {
+        shutupTTS();
         focus--;
         if (focus < 0) {
             mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
@@ -186,6 +187,7 @@ public class FolderActivity extends AppCompatActivity {
     }
 
     private void clickDown() {
+        shutupTTS();
         focus++;
         if (focus > folderBodyButtons.size() - 1) {
             mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
@@ -196,11 +198,13 @@ public class FolderActivity extends AppCompatActivity {
     }
 
     private void clickLeft() {
+        shutupTTS();
         startActivity(new Intent(FolderActivity.this, MainActivity.class));
         finish();
     }
 
     private void clickRight() {
+        shutupTTS();
         switch (focus) {
             case FOLDER_CREATE:
                 requestSpeech();
@@ -222,10 +226,12 @@ public class FolderActivity extends AppCompatActivity {
     }
 
     private void clickVToggle() {
+        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickXToggle() {
+        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
@@ -275,14 +281,12 @@ public class FolderActivity extends AppCompatActivity {
     }
 
     private void shutupTTS() {
-        speakThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                speak("");
-            }
-        });
-        speakThread.start();
-        mTTS.shutdown();
+        try {
+            speakThread.interrupt();
+            speakThread = null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void speak(String text) {

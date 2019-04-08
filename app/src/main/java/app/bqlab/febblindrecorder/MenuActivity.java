@@ -264,6 +264,7 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void clickUp() {
+        shutupTTS();
         focus--;
         if (focus < 0) {
             mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
@@ -274,6 +275,7 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void clickDown() {
+        shutupTTS();
         focus++;
         if (focus > menuBodyButtons.size() - 1) {
             focus = menuBodyButtons.size() - 1;
@@ -284,6 +286,7 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void clickLeft() {
+        shutupTTS();
         Intent i = new Intent(MenuActivity.this, RecordActivity.class);
         i.putExtra("filePath", filePath);
         startActivity(i);
@@ -291,6 +294,7 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void clickRight() {
+        shutupTTS();
         if (timerStart) {
             allowedExit = true;
             Intent i = new Intent(this, FoldersActivity.class);
@@ -302,9 +306,9 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void clickVToggle() {
+        shutupTTS();
         switch (focus) {
             case FILE_SAVE:
-                mTTS.stop();
                 final String folderName = getSharedPreferences("setting", MODE_PRIVATE).getString("SAVE_FOLDER_NAME", "");
                 speakThread = new Thread(new Runnable() {
                     @Override
@@ -330,8 +334,7 @@ public class MenuActivity extends AppCompatActivity {
 
                                     @Override
                                     public void onFinish() {
-                                        timerStart = false;
-                                        requestSpeech();
+
                                     }
                                 }.start();
                             }
@@ -360,6 +363,7 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void clickXToggle() {
+        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
@@ -426,14 +430,12 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void shutupTTS() {
-        speakThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                speak("");
-            }
-        });
-        speakThread.start();
-        mTTS.shutdown();
+        try {
+            speakThread.interrupt();
+            speakThread = null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void speak(String text) {

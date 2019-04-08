@@ -134,6 +134,7 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void clickUp() {
+        shutupTTS();
         focus--;
         if (focus < 0) {
             mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
@@ -144,6 +145,7 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void clickDown() {
+        shutupTTS();
         focus++;
         if (focus > foldersBodyLayouts.size() - 1) {
             mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
@@ -154,6 +156,7 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void clickLeft() {
+        shutupTTS();
         if (getIntent().getStringExtra("filePath") != null) {
             Intent i = new Intent(this, MenuActivity.class);
             i.putExtra("filePath", getIntent().getStringExtra("filePath") + "@folders");
@@ -166,10 +169,12 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void clickRight() {
+        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickVToggle() {
+        shutupTTS();
         String folderName = folderNames[focus];
         if (new File(folderDir, folderName).exists()) {
             getSharedPreferences("setting", MODE_PRIVATE).edit().putString("SAVE_FOLDER_NAME", folderName).apply();
@@ -191,6 +196,7 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void clickXToggle() {
+        shutupTTS();
         if (clicked) {
             //두번째 클릭
             File file = new File(folderDir, folderNames[focus]);

@@ -171,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void clickUp() {
+        shutupTTS();
         focus--;
         if (focus < 0) {
             mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
@@ -182,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void clickDown() {
+        shutupTTS();
         focus++;
         if (focus > mainBodyButtons.size() - 1) {
             mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
@@ -193,27 +195,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void clickLeft() {
+        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickRight() {
+        shutupTTS();
         switch (focus) {
             case FOCUS_VOICE_MEMO:
                 if (isDirectoryAllRight()) {
-                    shutupTTS();
                     startActivity(new Intent(MainActivity.this, RecordActivity.class));
                     stopPlaying();
                 }
                 break;
             case FOCUS_FOLDER_MANAGE:
-                shutupTTS();
                 isDirectoryAllRight();
                 startActivity(new Intent(MainActivity.this, FolderActivity.class));
                 stopPlaying();
                 break;
             case FOCUS_SEARCH_MEMO:
                 if (isDirectoryAllRight()) {
-                    shutupTTS();
                     startActivity(new Intent(MainActivity.this, SearchActivity.class));
                     stopPlaying();
                 }
@@ -223,16 +224,17 @@ public class MainActivity extends AppCompatActivity {
                     playRecentFile();
                 break;
             case FOCUS_APP_EXIT:
-                shutupTTS();
                 finishAffinity();
         }
     }
 
     private void clickVToggle() {
+        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickXToggle() {
+        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
@@ -305,15 +307,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void shutupTTS() {
-        //TTS 음성 강제 중지
-        speakThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                speak("");
-            }
-        });
-        speakThread.start();
-        mTTS.shutdown();
+        try {
+            speakThread.interrupt();
+            speakThread = null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void speak(String text) {
@@ -353,7 +352,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void playRecentFile() {
         loadFiles(); //파일 리스트 동기화
-        String latestFilePath = getSharedPreferences("setting", MODE_PRIVATE).getString("LATEST_RECORD_FILE", "");
+        final String latestFilePath = getSharedPreferences("setting", MODE_PRIVATE).getString("LATEST_RECORD_FILE", "");
         final File latestFile = new File(latestFilePath);
         if (Objects.equals(latestFilePath, "")) {
             speakThread = new Thread(new Runnable() {
@@ -376,33 +375,38 @@ public class MainActivity extends AppCompatActivity {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!playing) {
+                                mRecorder = new MediaRecorder();
+                                mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                                mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                                mRecorder.setOutputFile(latestFilePath);
+                                mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+                                playing = true;
+                                try {
+                                    mPlayer = new MediaPlayer();
+                                    mPlayer.setDataSource(latestFilePath);
+                                    mPlayer.prepare();
+                                    mPlayer.start();
+                                    mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                                        @Override
+                                        public void onCompletion(MediaPlayer mp) {
+                                            playing = false;
+                                            setupTTS();
+                                            speakFocus();
+                                        }
+                                    });
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    });
                 }
             });
             speakThread.start();
-            if (!playing) {
-                mRecorder = new MediaRecorder();
-                mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-                mRecorder.setOutputFile(latestFilePath);
-                mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-                playing = true;
-                try {
-                    mPlayer = new MediaPlayer();
-                    mPlayer.setDataSource(latestFilePath);
-                    mPlayer.prepare();
-                    mPlayer.start();
-                    mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                        @Override
-                        public void onCompletion(MediaPlayer mp) {
-                            playing = false;
-                            setupTTS();
-                            speakFocus();
-                        }
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 

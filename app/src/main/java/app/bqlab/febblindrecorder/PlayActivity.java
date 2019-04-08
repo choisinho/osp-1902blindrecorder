@@ -138,14 +138,17 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void clickUp() {
+        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickDown() {
+        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickLeft() {
+        shutupTTS();
         String flag = getIntent().getStringExtra("flag");
         if (flag.equals("list")) {
             startActivity(new Intent(PlayActivity.this, FilesActivity.class));
@@ -157,6 +160,7 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void clickRight() {
+        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
@@ -169,6 +173,7 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void clickXToggle() {
+        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
@@ -205,14 +210,12 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void shutupTTS() {
-        speakThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                speak("");
-            }
-        });
-        speakThread.start();
-        mTTS.shutdown();
+        try {
+            speakThread.interrupt();
+            speakThread = null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void speak(String text) {

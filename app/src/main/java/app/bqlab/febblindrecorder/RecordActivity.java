@@ -167,22 +167,27 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void clickUp() {
+        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickDown() {
+        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickLeft() {
+        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickRight() {
+        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickVToggle() {
+        shutupTTS();
         if (!recording) {
             mSoundPool.play(soundStartEnd, 1, 1, 0, 0, 1);
             startRecording();
@@ -193,6 +198,7 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void clickXToggle() {
+        shutupTTS();
         if (recording)
             stopRecording();
         if (targetName != null) {
@@ -343,14 +349,12 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void shutupTTS() {
-        speakThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                speak("");
-            }
-        });
-        speakThread.start();
-        mTTS.shutdown();
+        try {
+            speakThread.interrupt();
+            speakThread = null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void speak(String text) {

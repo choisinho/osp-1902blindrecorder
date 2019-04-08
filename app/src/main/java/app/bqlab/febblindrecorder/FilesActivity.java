@@ -134,6 +134,7 @@ public class FilesActivity extends AppCompatActivity {
     }
 
     private void clickUp() {
+        shutupTTS();
         focus--;
         if (focus < 0) {
             mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
@@ -144,6 +145,7 @@ public class FilesActivity extends AppCompatActivity {
     }
 
     private void clickDown() {
+        shutupTTS();
         focus++;
         if (focus > filesBodyLayouts.size() - 1) {
             mSoundPool.play(soundMenuEnd, 1, 1, 0, 0, 1);
@@ -154,11 +156,13 @@ public class FilesActivity extends AppCompatActivity {
     }
 
     private void clickLeft() {
+        shutupTTS();
         startActivity(new Intent(FilesActivity.this, SearchActivity.class));
         finish();
     }
 
     private void clickRight() {
+        shutupTTS();
         String fileName = fileNames[focus];
         if (new File(fileDir, fileName).exists()) {
             File file = new File(fileDir, fileName);
@@ -172,10 +176,12 @@ public class FilesActivity extends AppCompatActivity {
     }
 
     private void clickVToggle() {
+        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickXToggle() {
+        shutupTTS();
         if (clicked) {
             //두번째 클릭
             try {
@@ -282,14 +288,12 @@ public class FilesActivity extends AppCompatActivity {
     }
 
     private void shutupTTS() {
-        speakThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                speak("");
-            }
-        });
-        speakThread.start();
-        mTTS.shutdown();
+        try {
+            speakThread.interrupt();
+            speakThread = null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void speak(String text) {
