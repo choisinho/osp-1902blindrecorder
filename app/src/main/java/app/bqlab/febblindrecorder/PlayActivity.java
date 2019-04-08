@@ -138,12 +138,10 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void clickUp() {
-        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickDown() {
-        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
@@ -160,7 +158,6 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void clickRight() {
-        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
@@ -173,7 +170,6 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void clickXToggle() {
-        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 

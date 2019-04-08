@@ -31,6 +31,7 @@ public class SearchActivity extends AppCompatActivity {
     final int SPEECH_TO_TEXT = 1000;
     //variables
     int focus, soundMenuEnd, soundDisable;
+    boolean cannotFind;
     String fileDir;
     ArrayList<String> speech;
     //objects
@@ -110,12 +111,7 @@ public class SearchActivity extends AppCompatActivity {
                                 speakThread = new Thread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        try {
-                                            speak("파일을 찾지 못했습니다.");
-                                            Thread.sleep(1500);
-                                        } catch (InterruptedException e) {
-                                            e.printStackTrace();
-                                        }
+                                        cannotFind = true;
                                     }
                                 });
                                 speakThread.start();
@@ -296,13 +292,22 @@ public class SearchActivity extends AppCompatActivity {
         speakThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    Thread.sleep(500);
-                    speak("파일찾기메뉴");
-                    Thread.sleep(1500);
-                    speakFocus();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                if (cannotFind) {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    speak("파일을 찾지 못했습니다.");
+                } else {
+                    try {
+                        Thread.sleep(500);
+                        speak("파일찾기메뉴");
+                        Thread.sleep(1500);
+                        speakFocus();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });

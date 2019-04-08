@@ -13,6 +13,7 @@ import android.speech.tts.TextToSpeech;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
@@ -195,7 +196,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void clickLeft() {
-        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
@@ -229,12 +229,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void clickVToggle() {
-        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickXToggle() {
-        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
@@ -310,6 +308,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             speakThread.interrupt();
             speakThread = null;
+            playing = true;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -354,6 +353,7 @@ public class MainActivity extends AppCompatActivity {
         loadFiles(); //파일 리스트 동기화
         final String latestFilePath = getSharedPreferences("setting", MODE_PRIVATE).getString("LATEST_RECORD_FILE", "");
         final File latestFile = new File(latestFilePath);
+        playing = false;
         if (Objects.equals(latestFilePath, "")) {
             speakThread = new Thread(new Runnable() {
                 @Override
@@ -385,6 +385,7 @@ public class MainActivity extends AppCompatActivity {
                                 mRecorder.setOutputFile(latestFilePath);
                                 mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
                                 playing = true;
+                                Log.d("playing", "shutupTTS: " + String.valueOf(playing));
                                 try {
                                     mPlayer = new MediaPlayer();
                                     mPlayer.setDataSource(latestFilePath);
@@ -394,6 +395,7 @@ public class MainActivity extends AppCompatActivity {
                                         @Override
                                         public void onCompletion(MediaPlayer mp) {
                                             playing = false;
+                                            Log.d("playing", "shutupTTS: " + String.valueOf(playing));
                                             setupTTS();
                                             speakFocus();
                                         }

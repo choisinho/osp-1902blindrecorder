@@ -169,7 +169,6 @@ public class FoldersActivity extends AppCompatActivity {
     }
 
     private void clickRight() {
-        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 

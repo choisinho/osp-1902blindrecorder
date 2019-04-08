@@ -71,8 +71,8 @@ public class RecordActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        stopRecording();
         shutupTTS();
+        stopRecording();
     }
 
     @Override
@@ -167,27 +167,22 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void clickUp() {
-        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickDown() {
-        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickLeft() {
-        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickRight() {
-        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickVToggle() {
-        shutupTTS();
         if (!recording) {
             mSoundPool.play(soundStartEnd, 1, 1, 0, 0, 1);
             startRecording();
@@ -210,7 +205,13 @@ public class RecordActivity extends AppCompatActivity {
             startActivity(i);
             finish();
         } else {
-            speak("녹음파일이 생성되지 않았습니다.");
+            speakThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    speak("녹음파일이 생성되지 않았습니다.");
+                }
+            });
+            speakThread.start();
         }
     }
 
@@ -350,8 +351,10 @@ public class RecordActivity extends AppCompatActivity {
 
     private void shutupTTS() {
         try {
+            mTTS.stop();
             speakThread.interrupt();
             speakThread = null;
+            resuming = true;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -363,19 +366,20 @@ public class RecordActivity extends AppCompatActivity {
 
     private void speakFirst() {
         if (!resuming) {
-            new Thread(new Runnable() {
+            speakThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
                         Thread.sleep(1000);
                         speak("녹음화면");
                         Thread.sleep(1000);
-                        speak("녹음을 시작하려면 실행버튼을 눌러주세요. 녹음이 끝나면 X토글키를 눌러주세요.");
+                        speak("녹음을 시작하려면 IOS 키를 눌러주세요. 녹음이 끝나면 A 키를 눌러주세요.");
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
-            }).start();
+            });
+            speakThread.start();
         }
     }
 
@@ -385,98 +389,105 @@ public class RecordActivity extends AppCompatActivity {
         String resumedFile = getIntent().getStringExtra("filePath"); //이 파일이 이어서 녹음될 소스파일(병합된 소스파일)
         if (resumedFile != null) {
             sourcePathes.add(resumedFile); //병합될 파일 리스트(만약 @토글을 클릭시 이 리스트 속 모든 파일은 다시 병합됨)
-            new Thread(new Runnable() {
+            speakThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        //하단메뉴(일명 조이패드) 레이아웃 비활성화
-                        findViewById(R.id.record_bot_up).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            //하단메뉴(일명 조이패드) 레이아웃 비활성화
+                            findViewById(R.id.record_bot_up).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                                }
+                            });
+                            findViewById(R.id.record_bot_down).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                                }
+                            });
+                            findViewById(R.id.record_bot_left).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                                }
+                            });
+                            findViewById(R.id.record_bot_right).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                                }
+                            });
+                            findViewById(R.id.record_bot_enter).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                                }
+                            });
+                            findViewById(R.id.record_bot_close).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                                }
+                            });
+                            try {
+                                Thread.sleep(1000);
+                                speak("잠시 후 녹음이 다시 진행됩니다.");
+                                Thread.sleep(2500);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
                             }
-                        });
-                        findViewById(R.id.record_bot_down).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+                            //녹음이 시작되고 나서부터는 하단메뉴 활성화(버그를 해결하기 위해 채택된 최선의 방법)
+                            findViewById(R.id.record_bot_up).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    clickUp();
+                                }
+                            });
+                            findViewById(R.id.record_bot_down).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    clickDown();
+                                }
+                            });
+                            findViewById(R.id.record_bot_left).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    clickLeft();
+                                }
+                            });
+                            findViewById(R.id.record_bot_right).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    clickRight();
+                                }
+                            });
+                            findViewById(R.id.record_bot_enter).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    clickVToggle();
+                                }
+                            });
+                            findViewById(R.id.record_bot_close).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    clickXToggle();
+                                }
+                            });
+                            if (!recording) {
+                                startRecording();
+                            } else {
+                                stopRecording();
                             }
-                        });
-                        findViewById(R.id.record_bot_left).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
-                            }
-                        });
-                        findViewById(R.id.record_bot_right).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
-                            }
-                        });
-                        findViewById(R.id.record_bot_enter).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
-                            }
-                        });
-                        findViewById(R.id.record_bot_close).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
-                            }
-                        });
-                        Thread.sleep(1000);
-                        speak("잠시 후 녹음이 다시 진행됩니다.");
-                        Thread.sleep(2500);
-                        //녹음이 시작되고 나서부터는 하단메뉴 활성화(버그를 해결하기 위해 채택된 최선의 방법)
-                        findViewById(R.id.record_bot_up).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                clickUp();
-                            }
-                        });
-                        findViewById(R.id.record_bot_down).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                clickDown();
-                            }
-                        });
-                        findViewById(R.id.record_bot_left).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                clickLeft();
-                            }
-                        });
-                        findViewById(R.id.record_bot_right).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                clickRight();
-                            }
-                        });
-                        findViewById(R.id.record_bot_enter).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                clickVToggle();
-                            }
-                        });
-                        findViewById(R.id.record_bot_close).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                clickXToggle();
-                            }
-                        });
-                        if (!recording) {
-                            startRecording();
-                        } else {
-                            stopRecording();
                         }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    });
                 }
-            }).start();
+            });
+            speakThread.start();
             resuming = true;
-        }
+        } else
+            resuming = false;
     }
 }

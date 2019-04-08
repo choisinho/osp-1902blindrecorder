@@ -176,7 +176,6 @@ public class FilesActivity extends AppCompatActivity {
     }
 
     private void clickVToggle() {
-        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 

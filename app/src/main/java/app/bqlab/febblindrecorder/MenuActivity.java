@@ -36,7 +36,7 @@ public class MenuActivity extends AppCompatActivity {
     final String TAG = "MenuActivity";
     //variables
     int focus, soundMenuEnd, soundDisable;
-    boolean allowedExit, timerStart, foldersToHere;
+    boolean allowedExit, timerStart, foldersToHere, shutup;
     String fileName, fileDir, filePath;
     List<String> speech;
     //objects
@@ -61,8 +61,8 @@ public class MenuActivity extends AppCompatActivity {
         super.onResume();
         try {
             setupTTS();
-            speakFirst();
             checkEnterOption();
+            speakFirst();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -290,12 +290,12 @@ public class MenuActivity extends AppCompatActivity {
         Intent i = new Intent(MenuActivity.this, RecordActivity.class);
         i.putExtra("filePath", filePath);
         startActivity(i);
-        finish();
     }
 
     private void clickRight() {
-        shutupTTS();
         if (timerStart) {
+            shutupTTS();
+            shutup = true;
             allowedExit = true;
             Intent i = new Intent(this, FoldersActivity.class);
             i.putExtra("filePath", filePath);
@@ -334,7 +334,8 @@ public class MenuActivity extends AppCompatActivity {
 
                                     @Override
                                     public void onFinish() {
-
+                                        timerStart = false;
+                                        requestSpeech();
                                     }
                                 }.start();
                             }
@@ -363,7 +364,6 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void clickXToggle() {
-        shutupTTS();
         mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
@@ -431,6 +431,7 @@ public class MenuActivity extends AppCompatActivity {
 
     private void shutupTTS() {
         try {
+            mTTS.stop();
             speakThread.interrupt();
             speakThread = null;
         } catch (Exception e) {
@@ -447,14 +448,15 @@ public class MenuActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(500);
-                    speak("녹음메뉴");
-                    Thread.sleep(1500);
-                    speakFocus();
                     if (foldersToHere) {
                         Thread.sleep(1500);
                         requestSpeech();
                         Thread.sleep(3000);
+                    } else {
+                        Thread.sleep(500);
+                        speak("녹음메뉴");
+                        Thread.sleep(1500);
+                        speakFocus();
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -480,18 +482,25 @@ public class MenuActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    speak("파일명을 말하세요.");
-                    Thread.sleep(2000);
+                    if (!shutup) {
+                        speak("파일명을 말하세요.");
+                        Thread.sleep(2000);
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.KOREA);
+                        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "파일명을 말하세요.");
+                        startActivityForResult(intent, SPEECH_TO_TEXT);
+                    }
+                });
             }
         });
         speakThread.start();
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.KOREA);
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "파일명을 말하세요.");
-        startActivityForResult(intent, SPEECH_TO_TEXT);
     }
 }
