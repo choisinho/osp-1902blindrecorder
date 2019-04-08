@@ -328,16 +328,16 @@ public class FolderActivity extends AppCompatActivity {
                 try {
                     speak("생성할 폴더명을 말씀해주세요");
                     Thread.sleep(2500);
+                    Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.KOREA);
+                    intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "생성할 폴더명을 말씀해주세요");
+                    startActivityForResult(intent, SPEECH_TO_TEXT);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         });
         speakThread.start();
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.KOREA);
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "생성할 폴더명을 말씀해주세요");
-        startActivityForResult(intent, SPEECH_TO_TEXT);
     }
 }

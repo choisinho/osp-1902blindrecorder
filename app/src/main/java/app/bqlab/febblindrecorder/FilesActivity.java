@@ -199,20 +199,25 @@ public class FilesActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     speak("한번 더 누르면 파일이 삭제됩니다.");
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            new CountDownTimer(6000, 1000) { //딜레이 동안 한번 더 토글 클릭 입력시 파일 삭제
+                                @Override
+                                public void onTick(long millisUntilFinished) {
+
+                                }
+
+                                @Override
+                                public void onFinish() {
+                                    clicked = false;
+                                }
+                            }.start();
+                        }
+                    });
                 }
             });
             speakThread.start();
-            new CountDownTimer(6000, 1000) { //딜레이 동안 한번 더 토글 클릭 입력시 파일 삭제
-                @Override
-                public void onTick(long millisUntilFinished) {
-
-                }
-
-                @Override
-                public void onFinish() {
-                    clicked = false;
-                }
-            }.start();
         }
     }
 
