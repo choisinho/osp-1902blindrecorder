@@ -340,7 +340,7 @@ public class FoldersActivity extends AppCompatActivity {
             public void run() {
                 try {
                     speak(folderName);
-                    Thread.sleep(2000);
+                    Thread.sleep(1500);
                     speak(finalLastModifiedDay);
                 } catch (InterruptedException e) {
                     e.printStackTrace();

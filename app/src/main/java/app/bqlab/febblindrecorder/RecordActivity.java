@@ -175,7 +175,8 @@ public class RecordActivity extends AppCompatActivity {
     }
 
     private void clickLeft() {
-        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
     }
 
     private void clickRight() {

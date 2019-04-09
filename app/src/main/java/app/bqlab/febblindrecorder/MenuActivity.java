@@ -286,10 +286,7 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void clickLeft() {
-        shutupTTS();
-        Intent i = new Intent(MenuActivity.this, RecordActivity.class);
-        i.putExtra("filePath", filePath);
-        startActivity(i);
+        mSoundPool.play(soundDisable, 1, 1, 0, 0, 1);
     }
 
     private void clickRight() {
