@@ -257,13 +257,18 @@ public class PlayActivity extends AppCompatActivity {
                             speak(fileName.replace(".mp4", "") + new SimpleDateFormat(" yyyy년 MM월 dd일").format(mFile.lastModified()));
                             try {
                                 Thread.sleep(3000);
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        startPlaying();
+                                    }
+                                });
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
                         }
                     });
                     speakThread.start();
-                    startPlaying();
             }
         });
         speakThread.start();
